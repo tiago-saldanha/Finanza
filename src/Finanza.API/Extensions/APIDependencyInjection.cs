@@ -120,6 +120,9 @@ namespace Finanza.API.Extensions
             app.MapAccountEndpoints();
             app.MapFinancialAccountEndpoints();
             app.MapFinancialPlanningEndpoints();
+            app.MapAssetEndpoints();
+            app.MapLiabilityEndpoints();
+            app.MapNetWorthEndpoints();
 
             return app;
         }

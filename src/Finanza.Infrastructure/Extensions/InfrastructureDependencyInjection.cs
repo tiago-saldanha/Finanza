@@ -68,6 +68,8 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IFinancialAccountRepository, FinancialAccountRepository>();
+        services.AddScoped<IAssetRepository, AssetRepository>();
+        services.AddScoped<ILiabilityRepository, LiabilityRepository>();
 
         return services;
     }

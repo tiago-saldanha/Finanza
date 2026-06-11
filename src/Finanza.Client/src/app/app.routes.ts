@@ -60,6 +60,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'patrimony',
+        loadComponent: () =>
+          import('./features/patrimony/patrimony.component').then(m => m.PatrimonyComponent),
+      },
+      {
         path: 'planning',
         loadComponent: () =>
           import('./features/planning/planning.component').then(m => m.PlanningComponent),

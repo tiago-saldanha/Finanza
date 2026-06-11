@@ -9,6 +9,8 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Category>    Categories   { get; set; }
     public DbSet<Account>     Accounts     { get; set; }
+    public DbSet<Asset>       Assets       { get; set; }
+    public DbSet<Liability>   Liabilities  { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,6 +68,36 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .HasMaxLength(60);
 
             builder.Property(a => a.InitialBalance)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<Asset>(builder =>
+        {
+            builder.HasKey(a => a.Id);
+
+            builder.Property(a => a.Name)
+                .IsRequired()
+                .HasConversion(d => d.Value, v => new Description(v))
+                .HasMaxLength(100);
+
+            builder.Property(a => a.Value)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<Liability>(builder =>
+        {
+            builder.HasKey(l => l.Id);
+
+            builder.Property(l => l.Name)
+                .IsRequired()
+                .HasConversion(d => d.Value, v => new Description(v))
+                .HasMaxLength(100);
+
+            builder.Property(l => l.Value)
                 .IsRequired()
                 .HasConversion(m => m.Value, v => new Money(v))
                 .HasPrecision(18, 2);

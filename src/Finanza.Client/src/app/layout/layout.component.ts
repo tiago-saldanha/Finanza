@@ -49,6 +49,7 @@ export class LayoutComponent {
     { path: '/transactions',       label: 'Transações',       icon: 'receipt_long' },
     { path: '/categories',         label: 'Categorias',       icon: 'category' },
     { path: '/financial-accounts', label: 'Contas',           icon: 'account_balance_wallet' },
+    { path: '/patrimony',          label: 'Patrimônio',       icon: 'account_balance' },
     { path: '/planning',           label: 'Planejamento',     icon: 'insights' },
     { path: '/account',            label: 'Minha Conta',      icon: 'manage_accounts' },
   ];
