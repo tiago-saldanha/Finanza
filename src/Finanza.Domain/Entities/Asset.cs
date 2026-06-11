@@ -25,9 +25,16 @@ namespace Finanza.Domain.Entities
             Value = new Money(value);
         }
 
-        public Guid      Id    { get; private set; }
+        public void UpdateValue(decimal newValue)
+        {
+            Value = new Money(newValue);
+        }
+
+        public Guid      Id      { get; private set; }
         public Description Name  { get; private set; }
-        public AssetType Type  { get; private set; }
-        public Money     Value { get; private set; }
+        public AssetType Type    { get; private set; }
+        public Money     Value   { get; private set; }
+
+        public ICollection<AssetValueHistory> ValueHistory { get; private set; } = [];
     }
 }

@@ -71,6 +71,9 @@
                   {{ item.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                 </div>
                 <div class="item-actions">
+                  <button mat-icon-button matTooltip="Atualizar valor" (click)="openUpdateValue(item)">
+                    <mat-icon>trending_up</mat-icon>
+                  </button>
                   <button mat-icon-button matTooltip="Editar" (click)="openEditAsset(item)">
                     <mat-icon>edit</mat-icon>
                   </button>

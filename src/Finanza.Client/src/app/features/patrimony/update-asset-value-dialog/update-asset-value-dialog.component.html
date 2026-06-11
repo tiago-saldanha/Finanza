@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>Atualizar Valor — {{ data.assetName }}</h2>
+
+<mat-dialog-content>
+  @if (history().length > 0) {
+    <div class="chart-wrap">
+      <canvas baseChart [data]="chartData()" [options]="chartOptions" type="line"></canvas>
+    </div>
+  }
+
+  <form [formGroup]="form" class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Novo Valor (R$)</mat-label>
+      <input matInput formControlName="value" appCurrencyMask type="text" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Data</mat-label>
+      <input matInput formControlName="date" type="date" />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="form.invalid || saving()">
+    @if (saving()) { <mat-spinner diameter="18" /> } @else { Salvar }
+  </button>
+</mat-dialog-actions>
+
+<style>
+  .chart-wrap { max-height: 200px; margin-bottom: 16px; }
+  .form-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+  .form-grid mat-form-field { flex: 1; min-width: 140px; }
+</style>

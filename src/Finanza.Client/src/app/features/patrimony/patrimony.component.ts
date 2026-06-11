@@ -20,6 +20,10 @@ import {
   PatrimonyItemFormComponent,
   PatrimonyItemFormData,
 } from './patrimony-item-form/patrimony-item-form.component';
+import {
+  UpdateAssetValueDialogComponent,
+  UpdateAssetValueDialogData,
+} from './update-asset-value-dialog/update-asset-value-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -93,6 +97,20 @@ export class PatrimonyComponent implements OnInit {
     });
     ref.afterClosed().subscribe(result => {
       if (result) { this.snackBar.open(successMsg, 'OK', { duration: 3000 }); this.load(); }
+    });
+  }
+
+  openUpdateValue(item: Asset): void {
+    const data: UpdateAssetValueDialogData = {
+      assetId:      item.id,
+      assetName:    item.name,
+      currentValue: item.value,
+    };
+    const ref = this.dialog.open(UpdateAssetValueDialogComponent, {
+      width: '500px', disableClose: true, data,
+    });
+    ref.afterClosed().subscribe(result => {
+      if (result) { this.snackBar.open('Valor atualizado!', 'OK', { duration: 3000 }); this.load(); }
     });
   }
 

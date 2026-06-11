@@ -12,6 +12,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<Asset>              Assets             { get; set; }
     public DbSet<Liability>          Liabilities        { get; set; }
     public DbSet<PatrimonySnapshot>  PatrimonySnapshots { get; set; }
+    public DbSet<AssetValueHistory>  AssetValueHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -102,6 +103,21 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .IsRequired()
                 .HasConversion(m => m.Value, v => new Money(v))
                 .HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<AssetValueHistory>(builder =>
+        {
+            builder.HasKey(h => h.Id);
+
+            builder.Property(h => h.Value)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.HasOne(h => h.Asset)
+                .WithMany(a => a.ValueHistory)
+                .HasForeignKey(h => h.AssetId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<PatrimonySnapshot>(builder =>
