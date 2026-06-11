@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Finanza.API.Tests.Fixture;
 using Finanza.Application.DTOs.Responses;
@@ -27,6 +27,7 @@ public class PatrimonySnapshotEndpointTests
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Accounts");
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Investments");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetValueHistories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM PatrimonySnapshots");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Assets");
@@ -60,7 +61,7 @@ public class PatrimonySnapshotEndpointTests
     [Fact]
     public async Task POST_Snapshot_ShouldCaptureCurrentNetWorth()
     {
-        using var content = System.Net.Http.Json.JsonContent.Create(new { name = "Imóvel", type = 2, value = 300_000 });
+        using var content = System.Net.Http.Json.JsonContent.Create(new { name = "ImÃ³vel", type = 2, value = 300_000 });
         await _client.PostAsync("/api/assets/", content);
         using var content2 = System.Net.Http.Json.JsonContent.Create(new { name = "Financiamento", type = 0, value = 100_000 });
         await _client.PostAsync("/api/liabilities/", content2);
@@ -87,3 +88,4 @@ public class PatrimonySnapshotEndpointTests
         Assert.Equal(2, result!.Count);
     }
 }
+

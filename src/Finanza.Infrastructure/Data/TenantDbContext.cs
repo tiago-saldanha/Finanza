@@ -13,6 +13,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<Liability>          Liabilities        { get; set; }
     public DbSet<PatrimonySnapshot>  PatrimonySnapshots { get; set; }
     public DbSet<AssetValueHistory>  AssetValueHistories { get; set; }
+    public DbSet<Investment>         Investments         { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,6 +104,29 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .IsRequired()
                 .HasConversion(m => m.Value, v => new Money(v))
                 .HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<Investment>(builder =>
+        {
+            builder.HasKey(i => i.Id);
+
+            builder.Property(i => i.Name)
+                .IsRequired()
+                .HasConversion(d => d.Value, v => new Description(v))
+                .HasMaxLength(100);
+
+            builder.Property(i => i.InvestedAmount)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.Property(i => i.CurrentValue)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.Ignore(i => i.Return);
+            builder.Ignore(i => i.ReturnRate);
         });
 
         modelBuilder.Entity<AssetValueHistory>(builder =>

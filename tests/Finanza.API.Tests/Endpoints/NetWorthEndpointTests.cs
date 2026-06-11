@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -29,6 +29,7 @@ public class NetWorthEndpointTests
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Accounts");
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Investments");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetValueHistories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM PatrimonySnapshots");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Assets");
@@ -55,12 +56,12 @@ public class NetWorthEndpointTests
     [Fact]
     public async Task POST_Asset_ShouldCreate()
     {
-        var req      = new { name = "Imóvel", type = 2, value = 300_000 }; // 2 = Property
+        var req      = new { name = "ImÃ³vel", type = 2, value = 300_000 }; // 2 = Property
         var response = await _client.PostAsync("/api/assets/", Json(req));
         var result   = await response.Content.ReadFromJsonAsync<AssetResponse>();
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal("Imóvel",   result!.Name);
+        Assert.Equal("ImÃ³vel",   result!.Name);
         Assert.Equal("Property", result.Type);
     }
 
@@ -79,7 +80,7 @@ public class NetWorthEndpointTests
     [Fact]
     public async Task GET_NetWorth_AfterInserts_ShouldComputeCorrectly()
     {
-        await _client.PostAsync("/api/assets/",      Json(new { name = "Imóvel", type = 2, value = 300_000 }));
+        await _client.PostAsync("/api/assets/",      Json(new { name = "ImÃ³vel", type = 2, value = 300_000 }));
         await _client.PostAsync("/api/liabilities/", Json(new { name = "Financiamento", type = 0, value = 150_000 }));
 
         var response = await _client.GetAsync("/api/net-worth/");
@@ -106,10 +107,11 @@ public class NetWorthEndpointTests
     public async Task DELETE_Liability_ShouldRemove()
     {
         var created = await (await _client.PostAsync("/api/liabilities/",
-            Json(new { name = "Empréstimo", type = 1, value = 10_000 })))
+            Json(new { name = "EmprÃ©stimo", type = 1, value = 10_000 })))
             .Content.ReadFromJsonAsync<LiabilityResponse>();
 
         var del = await _client.DeleteAsync($"/api/liabilities/{created!.Id}");
         Assert.Equal(HttpStatusCode.NoContent, del.StatusCode);
     }
 }
+

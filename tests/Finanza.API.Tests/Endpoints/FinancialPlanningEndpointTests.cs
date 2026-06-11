@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Finanza.API.Tests.Fixture;
 using Finanza.Application.DTOs.Responses;
@@ -27,6 +27,7 @@ public class FinancialPlanningEndpointTests
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Accounts");
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Investments");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetValueHistories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM PatrimonySnapshots");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Assets");
@@ -79,3 +80,4 @@ public class FinancialPlanningEndpointTests
         Assert.Equal(now.Month, result.Month);
     }
 }
+

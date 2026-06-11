@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -29,6 +29,7 @@ public class FinancialAccountEndpointTests
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Accounts");
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Investments");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetValueHistories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM PatrimonySnapshots");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Assets");
@@ -58,7 +59,7 @@ public class FinancialAccountEndpointTests
     [Fact]
     public async Task GET_WhenIdIsProvided_ShouldReturnAccount()
     {
-        var create  = new { name = "Poupança", type = 1, initialBalance = 500 }; // 1 = Savings
+        var create  = new { name = "PoupanÃ§a", type = 1, initialBalance = 500 }; // 1 = Savings
         var created = await (await _client.PostAsync("/api/financial-accounts", GetContent(create)))
             .Content.ReadFromJsonAsync<FinancialAccountResponse>();
 
@@ -124,3 +125,4 @@ public class FinancialAccountEndpointTests
     private static StringContent GetContent(object request)
         => new(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 }
+

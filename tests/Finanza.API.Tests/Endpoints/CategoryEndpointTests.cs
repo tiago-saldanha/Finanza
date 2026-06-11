@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Finanza.API.Tests.Fixture;
@@ -28,6 +28,7 @@ public class CategoryEndpointTests
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Accounts");
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Investments");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetValueHistories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM PatrimonySnapshots");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Assets");
@@ -109,3 +110,4 @@ public class CategoryEndpointTests
     private static StringContent GetContent(object request)
         => new(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
 }
+

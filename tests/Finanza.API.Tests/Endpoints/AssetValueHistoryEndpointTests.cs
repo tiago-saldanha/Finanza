@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -26,6 +26,7 @@ public class AssetValueHistoryEndpointTests
 
     public async Task InitializeAsync()
     {
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Investments");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetValueHistories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
@@ -43,7 +44,7 @@ public class AssetValueHistoryEndpointTests
     [Fact]
     public async Task POST_AssetValue_ShouldUpdateAssetAndReturnHistory()
     {
-        var asset   = await (await _client.PostAsync("/api/assets/", Json(new { name = "Imóvel", type = 2, value = 300_000 })))
+        var asset   = await (await _client.PostAsync("/api/assets/", Json(new { name = "ImÃ³vel", type = 2, value = 300_000 })))
                         .Content.ReadFromJsonAsync<AssetResponse>();
 
         var req      = new { value = 320_000, date = DateTime.Today };
@@ -58,7 +59,7 @@ public class AssetValueHistoryEndpointTests
     [Fact]
     public async Task GET_AssetValueHistory_ShouldReturnHistory()
     {
-        var asset = await (await _client.PostAsync("/api/assets/", Json(new { name = "Imóvel", type = 2, value = 300_000 })))
+        var asset = await (await _client.PostAsync("/api/assets/", Json(new { name = "ImÃ³vel", type = 2, value = 300_000 })))
                         .Content.ReadFromJsonAsync<AssetResponse>();
 
         await _client.PostAsync($"/api/assets/{asset!.Id}/value", Json(new { value = 310_000, date = new DateTime(2025, 1, 1) }));
@@ -84,3 +85,4 @@ public class AssetValueHistoryEndpointTests
         Assert.Empty(result!);
     }
 }
+
