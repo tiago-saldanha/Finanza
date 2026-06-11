@@ -77,6 +77,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'fire',
+        loadComponent: () =>
+          import('./features/fire/fire.component').then(m => m.FireComponent),
+      },
+      {
         path: 'goals',
         loadComponent: () =>
           import('./features/goals/goals.component').then(m => m.GoalsComponent),

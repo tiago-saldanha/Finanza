@@ -1,0 +1,79 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Independência Financeira (FIRE)</h1>
+    <mat-icon class="fire-icon" matTooltip="Financial Independence, Retire Early">local_fire_department</mat-icon>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center"><mat-spinner diameter="48" /></div>
+  }
+
+  @if (!loading()) {
+    @let d = data();
+    @if (d) {
+      <!-- Meta FIRE -->
+      <mat-card class="fire-banner" [class.achieved]="d.estimatedYearsToFire === 0">
+        <div class="banner-content">
+          <div>
+            <div class="banner-label">Meta FIRE (25× despesas anuais)</div>
+            <div class="banner-value">{{ d.fireGoal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
+          <mat-divider vertical />
+          <div>
+            <div class="banner-label">Carteira Atual</div>
+            <div class="banner-value">{{ d.totalInvested | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
+          <mat-divider vertical />
+          <div>
+            <div class="banner-label">Estimativa</div>
+            <div class="banner-value years">{{ yearsLabel(d.estimatedYearsToFire) }}</div>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <mat-progress-bar mode="determinate" [value]="d.progressRate"
+            [color]="d.estimatedYearsToFire === 0 ? 'accent' : 'primary'" />
+          <div class="progress-label">{{ d.progressRate | number:'1.1-1' }}% do objetivo</div>
+        </div>
+      </mat-card>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <mat-card class="kpi-card">
+          <mat-icon class="kpi-icon">trending_down</mat-icon>
+          <div class="kpi-label">Despesas Anuais</div>
+          <div class="kpi-value">{{ d.annualExpenses | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          <div class="kpi-sub">média dos últimos 12 meses</div>
+        </mat-card>
+
+        <mat-card class="kpi-card">
+          <mat-icon class="kpi-icon">savings</mat-icon>
+          <div class="kpi-label">Poupança Mensal</div>
+          <div class="kpi-value" [class.positive]="d.monthlySavings >= 0" [class.negative]="d.monthlySavings < 0">
+            {{ d.monthlySavings | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub">{{ d.savingsRate | number:'1.1-1' }}% da receita</div>
+        </mat-card>
+
+        <mat-card class="kpi-card">
+          <mat-icon class="kpi-icon">calendar_today</mat-icon>
+          <div class="kpi-label">Anos até FIRE</div>
+          <div class="kpi-value">{{ yearsLabel(d.estimatedYearsToFire) }}</div>
+          <div class="kpi-sub">baseado na poupança atual</div>
+        </mat-card>
+      </div>
+
+      <!-- Regra dos 4% -->
+      <mat-card class="info-card">
+        <mat-card-header><mat-card-title>Como funciona a regra dos 4%?</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <p>A <strong>Regra dos 4%</strong> (Safe Withdrawal Rate) diz que você pode retirar 4% do seu patrimônio
+          investido por ano sem esgotá-lo ao longo de 30+ anos.</p>
+          <p>Isso significa que sua meta FIRE = <strong>despesas anuais × 25</strong>.</p>
+          <p>Com despesas de <strong>{{ d.annualExpenses | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}/ano</strong>,
+          sua meta é <strong>{{ d.fireGoal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>.</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>
