@@ -1,0 +1,94 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Contas Financeiras</h1>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nova Conta
+    </button>
+  </div>
+
+  <div class="filters-bar">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
+      <mat-label>Buscar conta</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchCtrl" placeholder="Nome da conta..." />
+    </mat-form-field>
+    <span class="filter-count">{{ filteredAccounts().length }} conta(s)</span>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (filteredAccounts().length === 0) {
+    <div class="empty-state">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <p>Nenhuma conta encontrada</p>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        Criar primeira conta
+      </button>
+    </div>
+  } @else {
+    <div class="totals-banner">
+      <div class="total-item">
+        <mat-icon>account_balance_wallet</mat-icon>
+        <div>
+          <div class="total-label">Saldo Total</div>
+          <div class="total-value" [class.text-revenue]="totalBalance() >= 0" [class.text-expense]="totalBalance() < 0">
+            {{ totalBalance() | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+        </div>
+      </div>
+      <mat-divider vertical />
+      <div class="total-item">
+        <mat-icon>credit_score</mat-icon>
+        <div>
+          <div class="total-label">Contas Cadastradas</div>
+          <div class="total-value">{{ accounts().length }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="account-grid">
+      @for (account of filteredAccounts(); track account.id) {
+        <mat-card class="account-card">
+          <mat-card-header>
+            <div class="account-avatar" mat-card-avatar>
+              <mat-icon>{{ accountIcon(account) }}</mat-icon>
+            </div>
+            <mat-card-title>{{ account.name }}</mat-card-title>
+            <mat-card-subtitle>{{ typeLabel(account) }}</mat-card-subtitle>
+            <div class="card-actions">
+              <button mat-icon-button matTooltip="Editar conta" (click)="openEditDialog(account)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Excluir conta" class="delete-btn" (click)="openDeleteDialog(account)">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="balance-row">
+              <div class="balance-item">
+                <div class="balance-label">Saldo Inicial</div>
+                <div class="balance-value">
+                  {{ account.initialBalance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                </div>
+              </div>
+              <div class="balance-divider"></div>
+              <div class="balance-item">
+                <div class="balance-label">Saldo Atual</div>
+                <div class="balance-value"
+                  [class.text-revenue]="account.currentBalance >= 0"
+                  [class.text-expense]="account.currentBalance < 0">
+                  {{ account.currentBalance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

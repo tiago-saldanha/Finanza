@@ -13,8 +13,10 @@ import { switchMap, of, Subject } from 'rxjs';
 
 import { CategoryService } from '../../../core/services/category.service';
 import { TransactionService } from '../../../core/services/transaction.service';
+import { FinancialAccountService } from '../../../core/services/financial-account.service';
 import { Transaction } from '../../../core/models/transaction.model';
 import { Category } from '../../../core/models/category.model';
+import { FinancialAccount } from '../../../core/models/financial-account.model';
 import { CurrencyMaskDirective } from '../../../core/directives/currency-mask.directive';
 
 export interface TransactionFormData {
@@ -44,11 +46,13 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly categoryService = inject(CategoryService);
   private readonly transactionService = inject(TransactionService);
+  private readonly accountService = inject(FinancialAccountService);
   private readonly dialogRef = inject(MatDialogRef<TransactionFormComponent>);
   private readonly dialogData = inject<TransactionFormData>(MAT_DIALOG_DATA, { optional: true });
   private readonly destroy$ = new Subject<void>();
 
   categories = signal<Category[]>([]);
+  accounts = signal<FinancialAccount[]>([]);
   saving = signal(false);
 
   get isEdit(): boolean {
@@ -60,6 +64,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     amount:          [null as number | null, [Validators.required, Validators.min(0.01)]],
     transactionType: ['', Validators.required],
     categoryId:      ['', Validators.required],
+    accountId:       [null as string | null],
     dueDate:         [null as Date | null, Validators.required],
     paymentDate:     [null as Date | null],
   });
@@ -67,7 +72,10 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.categoryService.getAll().subscribe(cats => {
       this.categories.set(cats);
-      if (this.isEdit) this.fillForm(this.dialogData!.transaction!);
+      this.accountService.getAll().subscribe(accounts => {
+        this.accounts.set(accounts);
+        if (this.isEdit) this.fillForm(this.dialogData!.transaction!);
+      });
     });
   }
 
@@ -82,6 +90,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
       amount:          tx.amount,
       transactionType: tx.type,
       categoryId:      this.categories().find(c => c.name === tx.categoryName)?.id ?? '',
+      accountId:       tx.accountId ?? null,
       dueDate:         new Date(tx.dueDate),
       paymentDate:     tx.paymentDate ? new Date(tx.paymentDate) : null,
     });
@@ -101,6 +110,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
           amount:          val.amount!,
           transactionType: val.transactionType as 'Revenue' | 'Expense',
           categoryId:      val.categoryId!,
+          accountId:       val.accountId ?? undefined,
           dueDate:         dueDate.toISOString(),
         })
       : this.transactionService.create({
@@ -108,6 +118,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
           amount:          val.amount!,
           transactionType: val.transactionType as 'Revenue' | 'Expense',
           categoryId:      val.categoryId!,
+          accountId:       val.accountId ?? undefined,
           dueDate:         dueDate.toISOString(),
           createdAt:       new Date().toISOString(),
         });

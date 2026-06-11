@@ -6,6 +6,7 @@ using Finanza.Infrastructure.Data;
 using Finanza.Infrastructure.Identity;
 using Finanza.Infrastructure.Interfaces;
 using Finanza.Infrastructure.Tenancy;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -13,6 +14,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Finanza.API.Tests.Fixture;
@@ -68,6 +70,25 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             RemoveService<IEmailService>(services);
             services.AddSingleton<IEmailService>(EmailStub);
+
+            // O AddWebApi lê Jwt:SecretKey do appsettings.json (vazio) antes das configs de teste.
+            // PostConfigure sobrescreve as TokenValidationParameters após o registro dos serviços.
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKey));
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey  = true,
+                    IssuerSigningKey          = key,
+                    ValidIssuer               = Issuer,
+                    ValidAudience             = Audience,
+                    ValidateIssuer            = true,
+                    ValidateAudience          = true,
+                    ValidateLifetime          = true,
+                    ClockSkew                 = TimeSpan.Zero,
+                };
+                options.MapInboundClaims = false;
+            });
 
             var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();

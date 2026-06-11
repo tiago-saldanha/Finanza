@@ -12,6 +12,8 @@ export interface Transaction {
   type: TransactionType;
   categoryName: string;
   isOverdue: boolean;
+  accountId?: string;
+  accountName?: string;
 }
 
 export interface CreateTransactionRequest {
@@ -21,6 +23,7 @@ export interface CreateTransactionRequest {
   transactionType: TransactionType;
   categoryId: string;
   createdAt: string;
+  accountId?: string;
 }
 
 export interface PayTransactionRequest {
@@ -33,6 +36,7 @@ export interface UpdateTransactionRequest {
   dueDate: string;
   transactionType: TransactionType;
   categoryId: string;
+  accountId?: string;
 }
 
 export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {

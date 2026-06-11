@@ -10,6 +10,7 @@ namespace Finanza.Application.Extensions
         {
             services.AddScoped<ITransactionAppService, TransactionAppService>();
             services.AddScoped<ICategoryAppService, CategoryAppService>();
+            services.AddScoped<IFinancialAccountAppService, FinancialAccountAppService>();
 
             return services;
         }

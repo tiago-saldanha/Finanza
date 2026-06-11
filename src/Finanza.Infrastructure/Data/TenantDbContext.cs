@@ -8,6 +8,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
 {
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Category>    Categories   { get; set; }
+    public DbSet<Account>     Accounts     { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +45,27 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
             builder.ComplexProperty(t => t.Dates, dates => dates.Property(d => d.DueDate));
 
             builder.Property(t => t.Amount)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.HasOne(t => t.Account)
+                .WithMany(a => a.Transactions)
+                .HasForeignKey(t => t.AccountId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+        });
+
+        modelBuilder.Entity<Account>(builder =>
+        {
+            builder.HasKey(a => a.Id);
+
+            builder.Property(a => a.Name)
+                .IsRequired()
+                .HasConversion(d => d.Value, v => new Description(v))
+                .HasMaxLength(60);
+
+            builder.Property(a => a.InitialBalance)
                 .IsRequired()
                 .HasConversion(m => m.Value, v => new Money(v))
                 .HasPrecision(18, 2);

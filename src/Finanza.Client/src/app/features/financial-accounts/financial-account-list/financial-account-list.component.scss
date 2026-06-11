@@ -1,0 +1,121 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  .page-title { margin-bottom: 0; }
+}
+
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  .filter-count { color: #757575; font-size: 13px; margin-left: auto; }
+}
+
+.search-field { width: 320px; }
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 64px;
+  color: #9e9e9e;
+  mat-icon { font-size: 56px; width: 56px; height: 56px; }
+  p { font-size: 16px; }
+}
+
+.totals-banner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: white;
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+
+  .total-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    mat-icon { font-size: 28px; width: 28px; height: 28px; color: #004d40; }
+    .total-label { font-size: 12px; color: #757575; margin-bottom: 2px; }
+    .total-value { font-size: 18px; font-weight: 600; }
+  }
+
+  mat-divider { height: 40px; }
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.account-card {
+  transition: box-shadow 0.2s;
+  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+  .card-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+    button { color: #757575; }
+    .delete-btn:hover { color: #c62828; }
+    button:not(.delete-btn):hover { color: #004d40; }
+  }
+
+  .account-avatar {
+    background: #d1fae5;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    mat-icon { color: #00695c; }
+  }
+
+  .balance-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+
+    .balance-item {
+      flex: 1;
+      text-align: center;
+      .balance-label { font-size: 11px; color: #757575; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .balance-value { font-size: 15px; font-weight: 600; }
+    }
+
+    .balance-divider {
+      width: 1px;
+      height: 36px;
+      background: #e0e0e0;
+    }
+  }
+}
+
+.text-revenue { color: #2e7d32; }
+.text-expense { color: #c62828; }
+
+@media (max-width: 600px) {
+  .totals-banner {
+    flex-direction: column;
+    gap: 12px;
+    mat-divider { display: none; }
+    .total-item { width: 100%; }
+  }
+}

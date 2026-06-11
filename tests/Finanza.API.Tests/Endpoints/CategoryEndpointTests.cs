@@ -1,11 +1,10 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Finanza.API.Tests.Fixture;
 using Finanza.Application.DTOs.Responses;
 using Finanza.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Finanza.API.Tests.Endpoints;
@@ -16,23 +15,25 @@ public class CategoryEndpointTests
     private readonly HttpClient _client;
     private readonly IServiceScope _scope;
     private readonly TenantDbContext _context;
-    private IDbContextTransaction _transaction = null!;
 
     public CategoryEndpointTests(CustomWebApplicationFactory factory)
     {
-        // Cliente jÃ¡ autenticado com JWT de teste
         _client  = factory.CreateAuthenticatedClient();
         _scope   = factory.Services.CreateScope();
         _context = _scope.ServiceProvider.GetRequiredService<TenantDbContext>();
     }
 
     public async Task InitializeAsync()
-        => _transaction = await _context.Database.BeginTransactionAsync();
-
-    public async Task DisposeAsync()
     {
-        await _transaction.RollbackAsync();
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Accounts");
+    }
+
+    public Task DisposeAsync()
+    {
         _scope.Dispose();
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -68,12 +69,18 @@ public class CategoryEndpointTests
     public async Task GET_ShouldReturnAllCategories()
     {
         var request = new { name = "Test", description = "Description" };
-        _ = await _client.PostAsync("/api/categories", GetContent(request));
+        var postResponse = await _client.PostAsync("/api/categories", GetContent(request));
+        var postBody = await postResponse.Content.ReadAsStringAsync();
+        Assert.True(postResponse.IsSuccessStatusCode, $"POST falhou ({postResponse.StatusCode}): {postBody}");
 
-        var response   = await _client.GetAsync("/api/categories/all");
-        var categories = await response.Content.ReadFromJsonAsync<List<CategoryResponse>>();
+        var response = await _client.GetAsync("/api/categories/all");
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.StatusCode == HttpStatusCode.OK, $"GET /all falhou ({response.StatusCode}): {body}");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var categories = System.Text.Json.JsonSerializer.Deserialize<List<CategoryResponse>>(body,
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.NotNull(categories);
         Assert.NotEmpty(categories!);
         Assert.Single(categories!);
     }
@@ -90,7 +97,7 @@ public class CategoryEndpointTests
         var updated       = await response.Content.ReadFromJsonAsync<CategoryResponse>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(created.Id,          updated!.Id);
+        Assert.Equal(created.Id,                updated!.Id);
         Assert.Equal(updateRequest.name,        updated.Name);
         Assert.Equal(updateRequest.description, updated.Description);
     }

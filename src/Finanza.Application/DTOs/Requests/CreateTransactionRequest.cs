@@ -12,6 +12,8 @@ namespace Finanza.Application.DTOs.Requests
         public Guid CategoryId { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        public Guid? AccountId { get; set; }
+
         public Transaction ToEntity()
         {
             return Transaction.Create(
@@ -20,7 +22,8 @@ namespace Finanza.Application.DTOs.Requests
                 DueDate,
                 Map(TransactionType),
                 CategoryId,
-                CreatedAt
+                CreatedAt,
+                AccountId
             );
         }
 

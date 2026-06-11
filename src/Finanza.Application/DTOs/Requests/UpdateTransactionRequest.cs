@@ -7,5 +7,6 @@
         public DateTime DueDate { get; set; }
         public string TransactionType { get; set; } = default!;
         public Guid CategoryId { get; set; }
+        public Guid? AccountId { get; set; }
     }
 }

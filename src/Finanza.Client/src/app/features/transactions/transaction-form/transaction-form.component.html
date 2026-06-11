@@ -48,6 +48,16 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
+          <mat-label>Conta (opcional)</mat-label>
+          <mat-select formControlName="accountId">
+            <mat-option [value]="null">Nenhuma</mat-option>
+            @for (acc of accounts(); track acc.id) {
+              <mat-option [value]="acc.id">{{ acc.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
           <mat-label>Data de Vencimento</mat-label>
           <input matInput [matDatepicker]="duePicker" formControlName="dueDate" />
           <mat-datepicker-toggle matIconSuffix [for]="duePicker" />

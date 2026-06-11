@@ -60,6 +60,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'financial-accounts',
+        loadComponent: () =>
+          import('./features/financial-accounts/financial-account-list/financial-account-list.component').then(
+            m => m.FinancialAccountListComponent
+          ),
+      },
+      {
         path: 'account',
         loadComponent: () =>
           import('./features/account/account.component').then(m => m.AccountComponent),

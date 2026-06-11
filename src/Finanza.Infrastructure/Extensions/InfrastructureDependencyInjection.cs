@@ -67,6 +67,7 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IFinancialAccountRepository, FinancialAccountRepository>();
 
         return services;
     }
