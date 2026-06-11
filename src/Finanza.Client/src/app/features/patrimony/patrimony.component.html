@@ -65,7 +65,7 @@
                 <mat-icon class="item-icon asset-icon">{{ assetIcon(item.type) }}</mat-icon>
                 <div class="item-info">
                   <div class="item-name">{{ item.name }}</div>
-                  <div class="item-type">{{ assetLabels[item.type] ?? item.type }}</div>
+                  <div class="item-type">{{ assetLabels[item.type] || item.type }}</div>
                 </div>
                 <div class="item-value text-asset">
                   {{ item.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
@@ -103,7 +103,7 @@
                 <mat-icon class="item-icon liability-icon">{{ liabilityIcon(item.type) }}</mat-icon>
                 <div class="item-info">
                   <div class="item-name">{{ item.name }}</div>
-                  <div class="item-type">{{ liabilityLabels[item.type] ?? item.type }}</div>
+                  <div class="item-type">{{ liabilityLabels[item.type] || item.type }}</div>
                 </div>
                 <div class="item-value text-liability">
                   {{ item.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
