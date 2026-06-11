@@ -8,6 +8,9 @@
       <button mat-stroked-button color="warn" (click)="openAddLiability()">
         <mat-icon>add</mat-icon> Novo Passivo
       </button>
+      <button mat-stroked-button color="accent" (click)="takeSnapshot()" [disabled]="takingSnapshot()">
+        <mat-icon>photo_camera</mat-icon> Tirar Snapshot
+      </button>
     </div>
   </div>
 

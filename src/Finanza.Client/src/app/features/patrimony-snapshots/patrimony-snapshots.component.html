@@ -1,0 +1,68 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Histórico de Patrimônio</h1>
+    <button mat-raised-button color="primary" (click)="takeSnapshot()" [disabled]="takingSnapshot()">
+      <mat-icon>photo_camera</mat-icon> Tirar Snapshot
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center"><mat-spinner diameter="48" /></div>
+  }
+
+  @if (!loading()) {
+    @if (snapshots().length === 0) {
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon class="empty-icon">timeline</mat-icon>
+          <p>Nenhum snapshot registrado ainda.</p>
+          <p>Clique em <strong>Tirar Snapshot</strong> para registrar o estado atual do seu patrimônio.</p>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Evolução Patrimonial</mat-card-title>
+          <mat-card-subtitle>{{ snapshots().length }} snapshot(s) registrado(s)</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas baseChart
+            [data]="chartData()"
+            [options]="chartOptions"
+            type="line">
+          </canvas>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="table-card">
+        <mat-card-header>
+          <mat-card-title>Detalhamento</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table class="snapshot-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th class="num">Ativos</th>
+                <th class="num">Passivos</th>
+                <th class="num">Patrimônio Líquido</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of snapshots(); track s.id) {
+                <tr>
+                  <td>{{ s.date | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="num positive">{{ s.totalAssets | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                  <td class="num negative">{{ s.totalLiabilities | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                  <td class="num" [class.positive]="s.netWorth >= 0" [class.negative]="s.netWorth < 0">
+                    {{ s.netWorth | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>

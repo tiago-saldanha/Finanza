@@ -10,6 +10,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { PatrimonyService } from '../../core/services/patrimony.service';
+import { PatrimonySnapshotService } from '../../core/services/patrimony-snapshot.service';
 import {
   Asset, Liability, NetWorth,
   ASSET_TYPE_LABELS, LIABILITY_TYPE_LABELS,
@@ -33,9 +34,12 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   styleUrl:    './patrimony.component.scss',
 })
 export class PatrimonyComponent implements OnInit {
-  private readonly service  = inject(PatrimonyService);
-  private readonly dialog   = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly service          = inject(PatrimonyService);
+  private readonly snapshotService  = inject(PatrimonySnapshotService);
+  private readonly dialog           = inject(MatDialog);
+  private readonly snackBar         = inject(MatSnackBar);
+
+  takingSnapshot = signal(false);
 
   loading  = signal(true);
   netWorth = signal<NetWorth | null>(null);
@@ -102,6 +106,17 @@ export class PatrimonyComponent implements OnInit {
     this.confirmDelete(`passivo "${item.name}"`, () =>
       this.service.deleteLiability(item.id).subscribe({ next: () => this.load() })
     );
+  }
+
+  takeSnapshot(): void {
+    this.takingSnapshot.set(true);
+    this.snapshotService.create().subscribe({
+      next: () => {
+        this.takingSnapshot.set(false);
+        this.snackBar.open('Snapshot registrado!', 'OK', { duration: 3000 });
+      },
+      error: () => this.takingSnapshot.set(false),
+    });
   }
 
   private confirmDelete(label: string, onConfirm: () => void): void {

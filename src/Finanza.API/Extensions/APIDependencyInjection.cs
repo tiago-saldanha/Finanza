@@ -123,6 +123,7 @@ namespace Finanza.API.Extensions
             app.MapAssetEndpoints();
             app.MapLiabilityEndpoints();
             app.MapNetWorthEndpoints();
+            app.MapPatrimonySnapshotEndpoints();
 
             return app;
         }

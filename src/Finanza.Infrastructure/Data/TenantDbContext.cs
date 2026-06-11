@@ -9,8 +9,9 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Category>    Categories   { get; set; }
     public DbSet<Account>     Accounts     { get; set; }
-    public DbSet<Asset>       Assets       { get; set; }
-    public DbSet<Liability>   Liabilities  { get; set; }
+    public DbSet<Asset>              Assets             { get; set; }
+    public DbSet<Liability>          Liabilities        { get; set; }
+    public DbSet<PatrimonySnapshot>  PatrimonySnapshots { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -98,6 +99,21 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .HasMaxLength(100);
 
             builder.Property(l => l.Value)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<PatrimonySnapshot>(builder =>
+        {
+            builder.HasKey(s => s.Id);
+
+            builder.Property(s => s.TotalAssets)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.Property(s => s.TotalLiabilities)
                 .IsRequired()
                 .HasConversion(m => m.Value, v => new Money(v))
                 .HasPrecision(18, 2);

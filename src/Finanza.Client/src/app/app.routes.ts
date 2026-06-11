@@ -77,6 +77,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'patrimony-snapshots',
+        loadComponent: () =>
+          import('./features/patrimony-snapshots/patrimony-snapshots.component').then(
+            m => m.PatrimonySnapshotsComponent
+          ),
+      },
+      {
         path: 'account',
         loadComponent: () =>
           import('./features/account/account.component').then(m => m.AccountComponent),
