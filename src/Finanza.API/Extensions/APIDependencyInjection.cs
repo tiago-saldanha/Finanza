@@ -119,6 +119,7 @@ namespace Finanza.API.Extensions
             app.MapTransactionEndpoints();
             app.MapAccountEndpoints();
             app.MapFinancialAccountEndpoints();
+            app.MapFinancialPlanningEndpoints();
 
             return app;
         }

@@ -1,0 +1,170 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Planejamento Financeiro</h1>
+    <div class="period-selectors">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="select-sm">
+        <mat-label>Mês</mat-label>
+        <mat-select [formControl]="selectedMonth" (selectionChange)="load()">
+          @for (m of months; track m.value) {
+            <mat-option [value]="m.value">{{ m.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="select-sm">
+        <mat-label>Ano</mat-label>
+        <mat-select [formControl]="selectedYear" (selectionChange)="load()">
+          @for (y of years; track y) {
+            <mat-option [value]="y">{{ y }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center"><mat-spinner diameter="48" /></div>
+  } @else {
+    @let p = planning();
+    @if (p) {
+
+    <!-- ── Resumo do mês ──────────────────────────────────────────── -->
+    <div class="summary-banner">
+      <div class="summary-item">
+        <mat-icon class="icon-revenue">trending_up</mat-icon>
+        <div>
+          <div class="s-label">Receita do mês</div>
+          <div class="s-value text-revenue">{{ p.monthlyRevenue | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+        </div>
+      </div>
+      <mat-divider vertical />
+      <div class="summary-item">
+        <mat-icon class="icon-expense">trending_down</mat-icon>
+        <div>
+          <div class="s-label">Despesas do mês</div>
+          <div class="s-value text-expense">{{ p.monthlyExpenses | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+        </div>
+      </div>
+      <mat-divider vertical />
+      <div class="summary-item">
+        <mat-icon [style.color]="p.monthlySavings >= 0 ? '#2e7d32' : '#c62828'">savings</mat-icon>
+        <div>
+          <div class="s-label">Economia do mês</div>
+          <div class="s-value" [class.text-revenue]="p.monthlySavings >= 0" [class.text-expense]="p.monthlySavings < 0">
+            {{ p.monthlySavings | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── KPI Cards ──────────────────────────────────────────────── -->
+    <div class="kpi-grid">
+
+      <!-- Taxa de Poupança -->
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="kpi-icon">percent</mat-icon>
+          <mat-card-title>Taxa de Poupança</mat-card-title>
+          <mat-card-subtitle>Meta: ≥ 20% da receita</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value" [style.color]="savingsRateColor()">
+            {{ p.savingsRate | number:'1.1-1' }}%
+          </div>
+          <div class="kpi-formula">
+            (Receita − Despesas) ÷ Receita × 100
+          </div>
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar">
+              <div class="progress-fill"
+                [style.width.%]="p.savingsRate < 0 ? 0 : (p.savingsRate > 100 ? 100 : p.savingsRate)"
+                [style.background]="savingsRateColor()">
+              </div>
+            </div>
+            <span class="progress-label">meta: 20%</span>
+          </div>
+          @if (p.monthlyRevenue === 0) {
+            <p class="no-data-hint">Sem receitas pagas neste período.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Regra 50-30-20 -->
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="kpi-icon">pie_chart</mat-icon>
+          <mat-card-title>Regra 50-30-20</mat-card-title>
+          <mat-card-subtitle>Distribuição da receita</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="rule-grid">
+            <div class="rule-item">
+              <div class="rule-label">Despesas (real)</div>
+              <div class="rule-real" [class.over-budget]="p.expenseRatio > 80">
+                {{ p.expenseRatio | number:'1.1-1' }}%
+              </div>
+              <div class="rule-target">meta: ≤ 80%</div>
+              <div class="progress-bar mini">
+                <div class="progress-fill"
+                  [style.width.%]="expenseBarWidth()"
+                  [style.background]="p.expenseRatio > 80 ? '#c62828' : '#f57c00'">
+                </div>
+              </div>
+            </div>
+            <div class="rule-item">
+              <div class="rule-label">Poupança (real)</div>
+              <div class="rule-real" [style.color]="savingsRateColor()">
+                {{ p.savingsRatio | number:'1.1-1' }}%
+              </div>
+              <div class="rule-target">meta: ≥ 20%</div>
+              <div class="progress-bar mini">
+                <div class="progress-fill"
+                  [style.width.%]="p.savingsRatio < 0 ? 0 : (p.savingsRatio > 100 ? 100 : p.savingsRatio)"
+                  [style.background]="savingsRateColor()">
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="rule-hint">
+            Na regra 50-30-20, 50% vai a necessidades, 30% a desejos e 20% é poupado.
+          </p>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Reserva de Emergência -->
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="kpi-icon">shield</mat-icon>
+          <mat-card-title>Reserva de Emergência</mat-card-title>
+          <mat-card-subtitle>Meta: {{ p.emergencyFundTarget }} meses de gastos</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="kpi-value" [style.color]="emergencyFundColor()">
+            {{ p.emergencyFundMonths | number:'1.1-1' }} meses
+          </div>
+          <div class="emergency-detail">
+            <span>Saldo nas contas:</span>
+            <strong>{{ p.totalAccountBalance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>
+          </div>
+          <div class="emergency-detail">
+            <span>Gastos médios (3 meses):</span>
+            <strong>{{ p.avgMonthlyExpenses | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>
+          </div>
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar">
+              <div class="progress-fill"
+                [style.width.%]="emergencyFundProgress()"
+                [style.background]="emergencyFundColor()">
+              </div>
+            </div>
+            <span class="progress-label">{{ emergencyFundProgress() | number:'1.0-0' }}% da meta</span>
+          </div>
+          @if (p.totalAccountBalance === 0 && p.avgMonthlyExpenses === 0) {
+            <p class="no-data-hint">Cadastre contas financeiras para ver este indicador.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+    } <!-- @if (p) -->
+  } <!-- @else -->
+</div>
