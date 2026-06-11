@@ -77,6 +77,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'goals',
+        loadComponent: () =>
+          import('./features/goals/goals.component').then(m => m.GoalsComponent),
+      },
+      {
         path: 'investments',
         loadComponent: () =>
           import('./features/investments/investments.component').then(m => m.InvestmentsComponent),

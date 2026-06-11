@@ -1,0 +1,53 @@
+.page-container { padding: 24px; max-width: 1000px; margin: 0 auto; }
+
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title { margin: 0; font-size: 1.5rem; font-weight: 500; }
+
+.loading-center { display: flex; justify-content: center; padding: 48px; }
+
+.form-card { margin-bottom: 24px; }
+.form-grid { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 8px; }
+.form-grid mat-form-field { flex: 1; min-width: 180px; }
+.full-width { flex: 100% !important; }
+
+.empty-state {
+  text-align: center; padding: 48px;
+  .empty-icon { font-size: 64px; width: 64px; height: 64px; color: #9e9e9e; margin-bottom: 16px; }
+  p { color: #757575; }
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.goal-card {
+  &.completed { border-left: 4px solid #4caf50; }
+  mat-card-avatar mat-icon { font-size: 36px; width: 36px; height: 36px; color: #1976d2; }
+  mat-card-avatar mat-icon.done { color: #4caf50; }
+}
+
+.amounts {
+  display: flex; align-items: baseline; gap: 4px;
+  font-size: 1.1rem; font-weight: 500; margin-bottom: 8px;
+  .sep    { color: #9e9e9e; }
+  .target { color: #757575; font-size: 0.9rem; }
+}
+
+.progress-label {
+  font-size: 0.8rem; color: #616161; margin-top: 4px;
+  .remaining { color: #f57c00; }
+}
+
+mat-progress-bar { border-radius: 4px; }
+
+mat-card-actions {
+  display: flex; align-items: center; gap: 4px;
+  button[mat-button] { margin-right: auto; }
+}
+
+.del-btn mat-icon { color: #d32f2f; }

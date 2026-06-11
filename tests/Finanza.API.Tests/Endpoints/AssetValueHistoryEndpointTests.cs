@@ -26,6 +26,7 @@ public class AssetValueHistoryEndpointTests
 
     public async Task InitializeAsync()
     {
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Goals");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Investments");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetValueHistories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
@@ -85,4 +86,5 @@ public class AssetValueHistoryEndpointTests
         Assert.Empty(result!);
     }
 }
+
 

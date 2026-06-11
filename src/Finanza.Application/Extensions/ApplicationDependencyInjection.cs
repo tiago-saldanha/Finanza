@@ -18,6 +18,7 @@ namespace Finanza.Application.Extensions
             services.AddScoped<IPatrimonySnapshotAppService, PatrimonySnapshotAppService>();
             services.AddScoped<IAssetValueHistoryAppService, AssetValueHistoryAppService>();
             services.AddScoped<IInvestmentAppService, InvestmentAppService>();
+            services.AddScoped<IGoalAppService, GoalAppService>();
 
             return services;
         }

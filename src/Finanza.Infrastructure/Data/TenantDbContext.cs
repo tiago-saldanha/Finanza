@@ -14,6 +14,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<PatrimonySnapshot>  PatrimonySnapshots { get; set; }
     public DbSet<AssetValueHistory>  AssetValueHistories { get; set; }
     public DbSet<Investment>         Investments         { get; set; }
+    public DbSet<Goal>               Goals               { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -104,6 +105,30 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .IsRequired()
                 .HasConversion(m => m.Value, v => new Money(v))
                 .HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<Goal>(builder =>
+        {
+            builder.HasKey(g => g.Id);
+
+            builder.Property(g => g.Name)
+                .IsRequired()
+                .HasConversion(d => d.Value, v => new Description(v))
+                .HasMaxLength(100);
+
+            builder.Property(g => g.TargetAmount)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.Property(g => g.CurrentAmount)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.Ignore(g => g.ProgressRate);
+            builder.Ignore(g => g.Remaining);
+            builder.Ignore(g => g.IsCompleted);
         });
 
         modelBuilder.Entity<Investment>(builder =>

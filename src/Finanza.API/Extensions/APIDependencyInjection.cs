@@ -126,6 +126,7 @@ namespace Finanza.API.Extensions
             app.MapPatrimonySnapshotEndpoints();
             app.MapAssetValueHistoryEndpoints();
             app.MapInvestmentEndpoints();
+            app.MapGoalEndpoints();
 
             return app;
         }

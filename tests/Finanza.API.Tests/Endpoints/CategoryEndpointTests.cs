@@ -28,6 +28,7 @@ public class CategoryEndpointTests
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Transactions");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Accounts");
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM Goals");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM Investments");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetValueHistories");
         await _context.Database.ExecuteSqlRawAsync("DELETE FROM PatrimonySnapshots");
@@ -110,4 +111,5 @@ public class CategoryEndpointTests
     private static StringContent GetContent(object request)
         => new(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
 }
+
 

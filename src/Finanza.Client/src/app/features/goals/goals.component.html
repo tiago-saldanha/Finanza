@@ -1,0 +1,111 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Metas Financeiras</h1>
+    <button mat-raised-button color="primary" (click)="openAdd()">
+      <mat-icon>add</mat-icon> Nova Meta
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center"><mat-spinner diameter="48" /></div>
+  }
+
+  @if (showForm()) {
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>{{ editing() ? 'Editar' : 'Nova' }} Meta</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="form" class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nome da Meta</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Valor Alvo (R$)</mat-label>
+            <input matInput formControlName="targetAmount" appCurrencyMask type="text" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Valor Atual (R$)</mat-label>
+            <input matInput formControlName="currentAmount" appCurrencyMask type="text" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Data Alvo</mat-label>
+            <input matInput formControlName="targetDate" type="date" />
+          </mat-form-field>
+        </form>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-button (click)="cancelForm()">Cancelar</button>
+        <button mat-raised-button color="primary" (click)="submit()" [disabled]="form.invalid || saving()">
+          @if (saving()) { <mat-spinner diameter="18" /> } @else { Salvar }
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  @if (contributing(); as g) {
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>Contribuir — {{ g.name }}</mat-card-title>
+        <mat-card-subtitle>Faltam {{ g.remaining | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="contributeForm" class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Valor (R$)</mat-label>
+            <input matInput formControlName="amount" appCurrencyMask type="text" />
+          </mat-form-field>
+        </form>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-button (click)="cancelForm()">Cancelar</button>
+        <button mat-raised-button color="primary" (click)="submitContribute()" [disabled]="contributeForm.invalid || saving()">
+          @if (saving()) { <mat-spinner diameter="18" /> } @else { Confirmar }
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  @if (!loading()) {
+    @if (goals().length === 0) {
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon class="empty-icon">flag</mat-icon>
+          <p>Nenhuma meta criada ainda.</p>
+        </mat-card-content>
+      </mat-card>
+    }
+    <div class="goals-grid">
+      @for (g of goals(); track g.id) {
+        <mat-card class="goal-card" [class.completed]="g.isCompleted">
+          <mat-card-header>
+            <mat-icon mat-card-avatar [class.done]="g.isCompleted">{{ g.isCompleted ? 'check_circle' : 'flag' }}</mat-icon>
+            <mat-card-title>{{ g.name }}</mat-card-title>
+            <mat-card-subtitle>Prazo: {{ g.targetDate | date:'dd/MM/yyyy' }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="amounts">
+              <span>{{ g.currentAmount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+              <span class="sep">/</span>
+              <span class="target">{{ g.targetAmount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="g.progressRate" [color]="g.isCompleted ? 'accent' : 'primary'" />
+            <div class="progress-label">{{ g.progressRate | number:'1.1-1' }}%
+              @if (!g.isCompleted) { <span class="remaining"> — faltam {{ g.remaining | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span> }
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            @if (!g.isCompleted) {
+              <button mat-button color="primary" (click)="openContribute(g)">
+                <mat-icon>add</mat-icon> Contribuir
+              </button>
+            }
+            <button mat-icon-button matTooltip="Editar" (click)="openEdit(g)"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button matTooltip="Excluir" class="del-btn" (click)="delete(g)"><mat-icon>delete_outline</mat-icon></button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>
