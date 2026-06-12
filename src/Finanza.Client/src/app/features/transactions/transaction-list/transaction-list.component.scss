@@ -6,9 +6,9 @@
       .page-title { margin-bottom: 0; }
     }
 
-    .search-field { width: 220px; flex-shrink: 0; }
-    .select-field { width: 152px; flex-shrink: 0; }
-    .date-field   { width: 152px; flex-shrink: 0; }
+    .search-field { flex: 0.8; min-width: 160px; }
+    .select-field { flex: 1;   min-width: 130px; }
+    .date-field   { flex: 1;   min-width: 130px; }
 
     .filter-count {
       margin-left: auto;
