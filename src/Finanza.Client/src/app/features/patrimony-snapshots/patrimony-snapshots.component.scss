@@ -22,6 +22,6 @@ canvas { max-height: 360px; }
   th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e0e0e0; font-size: 0.875rem; }
   th { font-weight: 600; color: #616161; }
   .num { text-align: right; }
-  .positive { color: #388e3c; }
-  .negative { color: #d32f2f; }
+  .positive { color: var(--color-revenue); }
+  .negative { color: var(--color-expense); }
 }

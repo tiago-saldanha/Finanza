@@ -19,9 +19,9 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   background: white;
   overflow: hidden;
-  border-top: 4px solid #2e7d32;
+  border-top: 4px solid var(--color-revenue);
 
-  &.negative { border-top-color: #c62828; }
+  &.negative { border-top-color: var(--color-expense); }
 
   mat-divider { width: 1px; }
 
@@ -40,8 +40,8 @@
       color: #9e9e9e;
     }
     .icon-networth  { color: #546e7a; }
-    .icon-asset     { color: #2e7d32; }
-    .icon-liability { color: #c62828; }
+    .icon-asset     { color: var(--color-revenue); }
+    .icon-liability { color: var(--color-expense); }
 
     .nw-card-label {
       font-size: 11px;
@@ -111,8 +111,8 @@
     width: 24px;
     height: 24px;
     flex-shrink: 0;
-    &.asset-icon     { color: #388e3c; }
-    &.liability-icon { color: #d32f2f; }
+    &.asset-icon     { color: var(--color-revenue); }
+    &.liability-icon { color: var(--color-expense); }
   }
 
   .item-info {
@@ -130,13 +130,13 @@
   .item-actions {
     display: flex;
     button { color: #9e9e9e; }
-    .del-btn:hover { color: #c62828; }
+    .del-btn:hover { color: var(--color-expense); }
     button:not(.del-btn):hover { color: #004d40; }
   }
 }
 
-.text-asset     { color: #2e7d32; }
-.text-liability { color: #c62828; }
+.text-asset     { color: var(--color-revenue); }
+.text-liability { color: var(--color-expense); }
 
 @media (max-width: 600px) {
   .networth-banner {

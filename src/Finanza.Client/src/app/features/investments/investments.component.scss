@@ -16,8 +16,8 @@
   .kpi-label { font-size: 0.75rem; color: #757575; margin-bottom: 4px; }
   .kpi-value { font-size: 1.25rem; font-weight: 600; }
   .kpi-sub   { font-size: 0.875rem; margin-top: 2px; }
-  &.positive .kpi-value, &.positive .kpi-sub { color: #388e3c; }
-  &.negative .kpi-value, &.negative .kpi-sub { color: #d32f2f; }
+  &.positive .kpi-value, &.positive .kpi-sub { color: var(--color-revenue); }
+  &.negative .kpi-value, &.negative .kpi-sub { color: var(--color-expense); }
 }
 
 .content-row { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
@@ -33,14 +33,14 @@ canvas { max-height: 260px; }
   padding: 12px 0;
 }
 .inv-left  { display: flex; align-items: center; gap: 12px; }
-.inv-icon  { color: #1976d2; }
+.inv-icon  { color: var(--color-primary); }
 .inv-name  { font-weight: 500; }
 .inv-type  { font-size: 0.75rem; color: #757575; }
 
 .inv-right { display: flex; align-items: center; gap: 16px; }
 .inv-current { font-weight: 500; }
 .inv-return  { font-size: 0.875rem; font-weight: 500; min-width: 60px; text-align: right; }
-.inv-return.positive { color: #388e3c; }
-.inv-return.negative { color: #d32f2f; }
+.inv-return.positive { color: var(--color-revenue); }
+.inv-return.negative { color: var(--color-expense); }
 .inv-actions { display: flex; }
-.del-btn mat-icon { color: #d32f2f; }
+.del-btn mat-icon { color: var(--color-expense); }
