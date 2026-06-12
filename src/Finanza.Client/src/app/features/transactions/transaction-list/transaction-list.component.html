@@ -32,6 +32,8 @@
             <mat-option value="Revenue">Receita</mat-option>
             <mat-option value="Expense">Despesa</mat-option>
             <mat-option value="Transfer">Transferência</mat-option>
+            <mat-option value="Investment">Investimento</mat-option>
+            <mat-option value="Loan">Empréstimo</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -80,10 +82,14 @@
                 <div class="type-indicator"
                      [class.type-revenue]="row.type === 'Revenue'"
                      [class.type-expense]="row.type === 'Expense'"
-                     [class.type-transfer]="row.type === 'Transfer'">
+                     [class.type-transfer]="row.type === 'Transfer'"
+                     [class.type-investment]="row.type === 'Investment'"
+                     [class.type-loan]="row.type === 'Loan'">
                   <mat-icon>{{
-                    row.type === 'Revenue' ? 'arrow_upward' :
-                    row.type === 'Expense' ? 'arrow_downward' :
+                    row.type === 'Revenue'    ? 'arrow_upward'   :
+                    row.type === 'Expense'    ? 'arrow_downward' :
+                    row.type === 'Investment' ? 'savings'        :
+                    row.type === 'Loan'       ? 'handshake'      :
                     'swap_horiz'
                   }}</mat-icon>
                 </div>

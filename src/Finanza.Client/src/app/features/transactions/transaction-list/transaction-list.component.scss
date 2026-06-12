@@ -45,7 +45,9 @@
       justify-content: center;
       &.type-revenue  { background: var(--color-revenue-bg);  mat-icon { color: var(--color-revenue-text);  font-size: 20px; width: 20px; height: 20px; line-height: 20px; } }
       &.type-expense  { background: var(--color-expense-bg);  mat-icon { color: var(--color-expense-text);  font-size: 20px; width: 20px; height: 20px; line-height: 20px; } }
-      &.type-transfer { background: #e3f2fd; mat-icon { color: #1565c0; font-size: 20px; width: 20px; height: 20px; line-height: 20px; } }
+      &.type-transfer   { background: #e3f2fd; mat-icon { color: #1565c0; font-size: 20px; width: 20px; height: 20px; line-height: 20px; } }
+      &.type-investment { background: #e8f5e9; mat-icon { color: #2e7d32; font-size: 20px; width: 20px; height: 20px; line-height: 20px; } }
+      &.type-loan       { background: #fff3e0; mat-icon { color: #e65100; font-size: 20px; width: 20px; height: 20px; line-height: 20px; } }
     }
 
     .desc-cell {

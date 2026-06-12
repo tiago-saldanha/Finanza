@@ -107,7 +107,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     const val         = this.form.value;
     const dueDate     = val.dueDate as Date;
     const paymentDate = val.paymentDate as Date | null;
-    const type        = val.transactionType as 'Revenue' | 'Expense' | 'Transfer';
+    const type        = val.transactionType as 'Revenue' | 'Expense' | 'Transfer' | 'Investment' | 'Loan';
 
     const save$ = this.isEdit
       ? this.transactionService.update(this.dialogData!.transaction!.id, {

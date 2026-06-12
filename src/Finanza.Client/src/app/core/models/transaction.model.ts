@@ -1,5 +1,5 @@
 export type TransactionStatus = 'Pending' | 'Paid' | 'Cancelled';
-export type TransactionType = 'Revenue' | 'Expense' | 'Transfer';
+export type TransactionType = 'Revenue' | 'Expense' | 'Transfer' | 'Investment' | 'Loan';
 
 export interface Transaction {
   id: string;
@@ -50,7 +50,9 @@ export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {
 };
 
 export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
-  Revenue: 'Receita',
-  Expense: 'Despesa',
-  Transfer: 'Transferência',
+  Revenue:    'Receita',
+  Expense:    'Despesa',
+  Transfer:   'Transferência',
+  Investment: 'Investimento',
+  Loan:       'Empréstimo',
 };
