@@ -37,9 +37,18 @@ interface TransactionFiltersState {
   search: string;
   status: string;
   type: string;
+  period: string;
   startDate: string | null;
   endDate: string | null;
 }
+
+const PERIOD_OPTIONS = [
+  { value: 'this_month',    label: 'Este Mês'        },
+  { value: 'last_month',    label: 'Mês Anterior'    },
+  { value: 'last_3_months', label: 'Últimos 3 Meses' },
+  { value: 'this_year',     label: 'Este Ano'        },
+  { value: 'custom',        label: 'Personalizado'   },
+];
 
 @Component({
   selector: 'app-transaction-list',
@@ -83,11 +92,16 @@ export class TransactionListComponent implements OnInit, OnDestroy {
 
   private readonly FILTER_KEY = 'transactions';
 
+  readonly periodOptions = PERIOD_OPTIONS;
+
   searchCtrl    = new FormControl('');
   statusCtrl    = new FormControl('');
   typeCtrl      = new FormControl('');
+  periodCtrl    = new FormControl('this_month');
   startDateCtrl = new FormControl<Date | null>(this.firstDayOfMonth());
   endDateCtrl   = new FormControl<Date | null>(this.lastDayOfMonth());
+
+  showCustomDates = computed(() => this.periodCtrl.value === 'custom');
 
   displayedColumns = ['type', 'description', 'amount', 'dueDate', 'paidAt', 'status', 'actions'];
   pageSize  = 10;
@@ -97,8 +111,7 @@ export class TransactionListComponent implements OnInit, OnDestroy {
     !!this.searchCtrl.value ||
     !!this.statusCtrl.value ||
     !!this.typeCtrl.value ||
-    this.startDateCtrl.value?.getTime() !== this.firstDayOfMonth().getTime() ||
-    this.endDateCtrl.value?.getTime()   !== this.lastDayOfMonth().getTime()
+    (this.periodCtrl.value !== 'this_month')
   );
 
   paginatedTransactions = computed(() => {
@@ -108,6 +121,14 @@ export class TransactionListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.restoreFilters();
+
+    this.periodCtrl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(period => {
+      if (period && period !== 'custom') {
+        const { start, end } = this.getPeriodDates(period);
+        this.startDateCtrl.setValue(start, { emitEvent: false });
+        this.endDateCtrl.setValue(end);
+      }
+    });
 
     combineLatest([
       this.searchCtrl.valueChanges.pipe(startWith(this.searchCtrl.value), debounceTime(400), distinctUntilChanged()),
@@ -146,8 +167,15 @@ export class TransactionListComponent implements OnInit, OnDestroy {
     this.searchCtrl.setValue(saved.search ?? '', { emitEvent: false });
     this.statusCtrl.setValue(saved.status ?? '', { emitEvent: false });
     this.typeCtrl.setValue(saved.type ?? '', { emitEvent: false });
-    this.startDateCtrl.setValue(saved.startDate ? new Date(saved.startDate) : this.firstDayOfMonth(), { emitEvent: false });
-    this.endDateCtrl.setValue(saved.endDate ? new Date(saved.endDate) : this.lastDayOfMonth(), { emitEvent: false });
+    this.periodCtrl.setValue(saved.period ?? 'this_month', { emitEvent: false });
+    if (saved.period === 'custom') {
+      this.startDateCtrl.setValue(saved.startDate ? new Date(saved.startDate) : this.firstDayOfMonth(), { emitEvent: false });
+      this.endDateCtrl.setValue(saved.endDate ? new Date(saved.endDate) : this.lastDayOfMonth(), { emitEvent: false });
+    } else {
+      const { start, end } = this.getPeriodDates(saved.period ?? 'this_month');
+      this.startDateCtrl.setValue(start, { emitEvent: false });
+      this.endDateCtrl.setValue(end, { emitEvent: false });
+    }
   }
 
   private persistFilters(search: string | null, status: string | null, type: string | null, startDate: Date | null, endDate: Date | null): void {
@@ -155,9 +183,22 @@ export class TransactionListComponent implements OnInit, OnDestroy {
       search:    search    ?? '',
       status:    status    ?? '',
       type:      type      ?? '',
+      period:    this.periodCtrl.value ?? 'this_month',
       startDate: startDate ? startDate.toISOString() : null,
       endDate:   endDate   ? endDate.toISOString()   : null,
     });
+  }
+
+  private getPeriodDates(period: string): { start: Date; end: Date } {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    switch (period) {
+      case 'last_month':    return { start: new Date(y, m - 1, 1), end: new Date(y, m, 0) };
+      case 'last_3_months': return { start: new Date(y, m - 2, 1), end: new Date(y, m + 1, 0) };
+      case 'this_year':     return { start: new Date(y, 0, 1),     end: new Date(y, 11, 31) };
+      default:              return { start: new Date(y, m, 1),     end: new Date(y, m + 1, 0) };
+    }
   }
 
   ngOnDestroy(): void {
@@ -273,7 +314,8 @@ export class TransactionListComponent implements OnInit, OnDestroy {
     this.searchCtrl.setValue('');
     this.statusCtrl.setValue('');
     this.typeCtrl.setValue('');
-    this.startDateCtrl.setValue(this.firstDayOfMonth());
+    this.periodCtrl.setValue('this_month', { emitEvent: false });
+    this.startDateCtrl.setValue(this.firstDayOfMonth(), { emitEvent: false });
     this.endDateCtrl.setValue(this.lastDayOfMonth());
   }
 
