@@ -94,7 +94,7 @@
                   <mat-icon class="inv-icon">{{ typeIcon(inv.type) }}</mat-icon>
                   <div>
                     <div class="inv-name">{{ inv.name }}</div>
-                    <div class="inv-type">{{ typeLabels[inv.type] ?? inv.type }}</div>
+                    <div class="inv-type">{{ typeLabels[inv.type] || inv.type }}</div>
                   </div>
                 </div>
                 <div class="inv-right">
