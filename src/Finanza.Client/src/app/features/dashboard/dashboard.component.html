@@ -1,42 +1,41 @@
 <div class="page-container">
-  <div class="page-header">
-    <h1 class="page-title">Dashboard</h1>
-    <div class="period-controls">
-      <mat-form-field appearance="outline" class="period-select" subscriptSizing="dynamic">
-        <mat-label>Período</mat-label>
-        <mat-select [value]="periodMode()" (valueChange)="setPeriod($event)">
-          <mat-option value="thisMonth">Este mês</mat-option>
-          <mat-option value="lastMonth">Mês passado</mat-option>
-          <mat-option value="last30Days">Últimos 30 dias</mat-option>
-          <mat-option value="thisYear">Este ano</mat-option>
-          <mat-option value="all">Tudo</mat-option>
-          <mat-option value="custom">Personalizado</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      @if (showCustomDates()) {
-        <mat-form-field appearance="outline" class="date-select" subscriptSizing="dynamic">
-          <mat-label>Data Inicial</mat-label>
-          <input matInput [matDatepicker]="dashStart" [formControl]="customStartCtrl" (dateChange)="onCustomDateChange()" />
-          <mat-datepicker-toggle matIconSuffix [for]="dashStart" />
-          <mat-datepicker #dashStart />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="date-select" subscriptSizing="dynamic">
-          <mat-label>Data Final</mat-label>
-          <input matInput [matDatepicker]="dashEnd" [formControl]="customEndCtrl" (dateChange)="onCustomDateChange()" />
-          <mat-datepicker-toggle matIconSuffix [for]="dashEnd" />
-          <mat-datepicker #dashEnd />
-        </mat-form-field>
-      }
-    </div>
-  </div>
-
   @if (loading()) {
     <div class="loading-center"><mat-spinner diameter="48" /></div>
   } @else {
 
-    <!-- ═══ LINHA 1: KPIs principais ═══ -->
+    <!-- ═══ LINHA 1: título + filtro + KPIs (mesmo grid) ═══ -->
     <div class="kpi-row">
+      <!-- Título + Filtro: ocupa as primeiras 4 colunas + última coluna -->
+      <div class="kpi-header-title">
+        <h1 class="page-title">Dashboard</h1>
+      </div>
+      <div class="kpi-header-period">
+        <mat-form-field appearance="outline" class="period-select" subscriptSizing="dynamic">
+          <mat-label>Período</mat-label>
+          <mat-select [value]="periodMode()" (valueChange)="setPeriod($event)">
+            <mat-option value="thisMonth">Este mês</mat-option>
+            <mat-option value="lastMonth">Mês passado</mat-option>
+            <mat-option value="last30Days">Últimos 30 dias</mat-option>
+            <mat-option value="thisYear">Este ano</mat-option>
+            <mat-option value="all">Tudo</mat-option>
+            <mat-option value="custom">Personalizado</mat-option>
+          </mat-select>
+        </mat-form-field>
+        @if (showCustomDates()) {
+          <mat-form-field appearance="outline" class="date-select" subscriptSizing="dynamic">
+            <mat-label>Data Inicial</mat-label>
+            <input matInput [matDatepicker]="dashStart" [formControl]="customStartCtrl" (dateChange)="onCustomDateChange()" />
+            <mat-datepicker-toggle matIconSuffix [for]="dashStart" />
+            <mat-datepicker #dashStart />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="date-select" subscriptSizing="dynamic">
+            <mat-label>Data Final</mat-label>
+            <input matInput [matDatepicker]="dashEnd" [formControl]="customEndCtrl" (dateChange)="onCustomDateChange()" />
+            <mat-datepicker-toggle matIconSuffix [for]="dashEnd" />
+            <mat-datepicker #dashEnd />
+          </mat-form-field>
+        }
+      </div>
       <mat-card class="kpi-card">
         <div class="kpi-icon" style="background:#e8f5e9"><mat-icon style="color:#2e7d32">account_balance_wallet</mat-icon></div>
         <div class="kpi-body">
