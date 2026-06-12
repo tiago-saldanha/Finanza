@@ -46,21 +46,19 @@
           </mat-select>
         </mat-form-field>
 
-        @if (showCustomDates()) {
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
-            <mat-label>Data Inicial</mat-label>
-            <input matInput [matDatepicker]="startPicker" [formControl]="startDateCtrl" />
-            <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
-            <mat-datepicker #startPicker />
-          </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
+          <mat-label>Data Inicial</mat-label>
+          <input matInput [matDatepicker]="startPicker" [formControl]="startDateCtrl" />
+          <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+          <mat-datepicker #startPicker />
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
-            <mat-label>Data Final</mat-label>
-            <input matInput [matDatepicker]="endPicker" [formControl]="endDateCtrl" />
-            <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
-            <mat-datepicker #endPicker />
-          </mat-form-field>
-        }
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
+          <mat-label>Data Final</mat-label>
+          <input matInput [matDatepicker]="endPicker" [formControl]="endDateCtrl" />
+          <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+          <mat-datepicker #endPicker />
+        </mat-form-field>
 
         @if (activeFilters()) {
           <button mat-icon-button matTooltip="Limpar filtros" (click)="clearFilters()">
