@@ -18,11 +18,19 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { CategoryService } from '../../../core/services/category.service';
 import { TransactionService } from '../../../core/services/transaction.service';
+import { FilterStateService } from '../../../core/services/filter-state.service';
 import { Category } from '../../../core/models/category.model';
 import { Transaction } from '../../../core/models/transaction.model';
 import { CategoryFormComponent, CategoryFormData } from '../category-form/category-form.component';
 
 type PeriodMode = 'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all' | 'custom';
+
+interface CategoryFiltersState {
+  search: string;
+  periodMode: PeriodMode;
+  customStartDate: string | null;
+  customEndDate: string | null;
+}
 
 @Component({
   selector: 'app-category-list',
@@ -50,8 +58,11 @@ type PeriodMode = 'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all' 
 export class CategoryListComponent implements OnInit {
   private readonly categoryService = inject(CategoryService);
   private readonly transactionService = inject(TransactionService);
+  private readonly filterState = inject(FilterStateService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+
+  private readonly FILTER_KEY = 'categories';
 
   loading = signal(true);
   categories = signal<Category[]>([]);
@@ -117,7 +128,27 @@ export class CategoryListComponent implements OnInit {
   grandBalance = computed(() => this.grandTotalReceived() - this.grandTotalSpent());
 
   ngOnInit(): void {
+    this.restoreFilters();
+    this.searchCtrl.valueChanges.subscribe(() => this.persistFilters());
     this.loadAll();
+  }
+
+  private restoreFilters(): void {
+    const saved = this.filterState.load<CategoryFiltersState>(this.FILTER_KEY);
+    if (!saved) return;
+    if (saved.search) this.searchCtrl.setValue(saved.search, { emitEvent: false });
+    if (saved.periodMode) this.periodMode.set(saved.periodMode);
+    if (saved.customStartDate) this.customStartDate.set(new Date(saved.customStartDate));
+    if (saved.customEndDate) this.customEndDate.set(new Date(saved.customEndDate));
+  }
+
+  private persistFilters(): void {
+    this.filterState.save<CategoryFiltersState>(this.FILTER_KEY, {
+      search:          this.searchCtrl.value ?? '',
+      periodMode:      this.periodMode(),
+      customStartDate: this.customStartDate()?.toISOString() ?? null,
+      customEndDate:   this.customEndDate()?.toISOString()   ?? null,
+    });
   }
 
   loadAll(): void {
@@ -177,6 +208,7 @@ export class CategoryListComponent implements OnInit {
       this.customStartDate.set(start);
       this.customEndDate.set(end);
     }
+    this.persistFilters();
   }
 
   // Resolve o intervalo [start, end) atual considerando preset ou custom.

@@ -1,14 +1,15 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { ThemeService } from '../../core/services/theme.service';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -20,8 +21,18 @@ import { forkJoin } from 'rxjs';
 
 import { TransactionService } from '../../core/services/transaction.service';
 import { CategoryService } from '../../core/services/category.service';
+import { FinancialAccountService } from '../../core/services/financial-account.service';
+import { InvestmentService } from '../../core/services/investment.service';
+import { LoanService } from '../../core/services/loan.service';
+import { GoalService } from '../../core/services/goal.service';
+import { PatrimonyService } from '../../core/services/patrimony.service';
+
 import { Transaction } from '../../core/models/transaction.model';
-import { Category } from '../../core/models/category.model';
+import { FinancialAccount } from '../../core/models/financial-account.model';
+import { InvestmentPortfolio } from '../../core/models/investment.model';
+import { LoanSummary } from '../../core/models/loan.model';
+import { Goal } from '../../core/models/goal.model';
+import { NetWorth } from '../../core/models/patrimony.model';
 
 Chart.register(...registerables);
 
@@ -32,14 +43,16 @@ Chart.register(...registerables);
     CommonModule,
     CurrencyPipe,
     DatePipe,
+    DecimalPipe,
     RouterLink,
     MatCardModule,
     MatIconModule,
     MatButtonModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatChipsModule,
     MatDividerModule,
-    MatButtonToggleModule,
+    MatTooltipModule,
     MatFormFieldModule,
     MatSelectModule,
     MatDatepickerModule,
@@ -50,184 +63,96 @@ Chart.register(...registerables);
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
-  private readonly transactionService = inject(TransactionService);
-  private readonly categoryService = inject(CategoryService);
-  private readonly themeService = inject(ThemeService);
+  private readonly transactionService   = inject(TransactionService);
+  private readonly categoryService      = inject(CategoryService);
+  private readonly accountService       = inject(FinancialAccountService);
+  private readonly investmentService    = inject(InvestmentService);
+  private readonly loanService          = inject(LoanService);
+  private readonly goalService          = inject(GoalService);
+  private readonly patrimonyService     = inject(PatrimonyService);
+  private readonly themeService         = inject(ThemeService);
 
   private cssVar(name: string): string {
     return getComputedStyle(document.body).getPropertyValue(name).trim();
   }
+
   loading = signal(true);
-  transactions = signal<Transaction[]>([]);
-  categories = signal<Category[]>([]);
 
-  // Filtro de status: todas / pagas / pendentes.
-  filterMode = signal<'all' | 'paid' | 'unpaid'>('all');
+  transactions  = signal<Transaction[]>([]);
+  accounts      = signal<FinancialAccount[]>([]);
+  portfolio     = signal<InvestmentPortfolio | null>(null);
+  loanSummary   = signal<LoanSummary | null>(null);
+  goals         = signal<Goal[]>([]);
+  netWorth      = signal<NetWorth | null>(null);
 
-  // Filtro de período. Padrão: este mês.
-  periodMode = signal<'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all' | 'custom'>('thisMonth');
+  // ---- Período (transações do mês) ----
+  periodMode = signal<'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all'>('thisMonth');
 
-  // Datas usadas quando o período é 'custom'. Enquanto não preenchidas o
-  // filtro fica desligado (mesmo comportamento de "Tudo").
-  customStartDate = signal<Date | null>(null);
-  customEndDate = signal<Date | null>(null);
-
-  // Transações dentro do período selecionado (independe do filtro de status).
-  // O filtro é aplicado no `dueDate` da transação.
-  periodFiltered = computed(() => {
-    const range = this.resolvePeriodRange();
+  private periodFiltered = computed(() => {
+    const range = this.getPeriodRange(this.periodMode());
     const all = this.transactions();
-    if (!range) return all;
+    if (!range) return all.filter(t => t.status !== 'Cancelled');
     const { start, end } = range;
     return all.filter(t => {
       const d = new Date(t.dueDate);
-      return d >= start && d < end;
+      return d >= start && d < end && t.status !== 'Cancelled';
     });
   });
 
-  // Resolve o intervalo atual considerando tanto os modos predefinidos
-  // quanto o modo 'custom' (que depende dos signals customStart/customEnd).
-  private resolvePeriodRange(): { start: Date; end: Date } | null {
-    const mode = this.periodMode();
-    if (mode === 'custom') {
-      const start = this.customStartDate();
-      const end = this.customEndDate();
-      if (!start || !end) return null;
-      // O fim do intervalo é exclusivo, então somamos 1 dia para
-      // incluir transações que vencem no próprio dia "Data Final".
-      const inclusiveEnd = new Date(end);
-      inclusiveEnd.setHours(0, 0, 0, 0);
-      inclusiveEnd.setDate(inclusiveEnd.getDate() + 1);
-      const normalizedStart = new Date(start);
-      normalizedStart.setHours(0, 0, 0, 0);
-      return { start: normalizedStart, end: inclusiveEnd };
-    }
-    return this.getPeriodRange(mode);
-  }
-
-  // Transações depois de aplicar período + filtro de status.
-  // 'all' inclui Paid e Pending (Cancelled é deixado de fora por padrão).
-  filteredTransactions = computed(() => {
-    const all = this.periodFiltered();
-    switch (this.filterMode()) {
-      case 'paid':
-        return all.filter(t => t.status === 'Paid');
-      case 'unpaid':
-        return all.filter(t => t.status === 'Pending');
-      default:
-        return all.filter(t => t.status !== 'Cancelled');
-    }
-  });
-
+  // ---- KPIs de transações ----
   totalRevenue = computed(() =>
-    this.filteredTransactions()
-      .filter(t => t.type === 'Revenue')
-      .reduce((sum, t) => sum + t.amount, 0)
+    this.periodFiltered().filter(t => t.type === 'Revenue' && t.status === 'Paid').reduce((s, t) => s + t.amount, 0)
   );
-
   totalExpense = computed(() =>
-    this.filteredTransactions()
-      .filter(t => t.type === 'Expense')
-      .reduce((sum, t) => sum + t.amount, 0)
+    this.periodFiltered().filter(t => t.type === 'Expense' && t.status === 'Paid').reduce((s, t) => s + t.amount, 0)
+  );
+  monthBalance = computed(() => this.totalRevenue() - this.totalExpense());
+  pendingCount = computed(() => this.periodFiltered().filter(t => t.status === 'Pending').length);
+  overdueCount = computed(() => this.periodFiltered().filter(t => t.isOverdue && t.status === 'Pending').length);
+
+  // ---- KPIs de contas ----
+  totalAccountBalance = computed(() =>
+    this.accounts().reduce((s, a) => s + a.currentBalance, 0)
   );
 
-  balance = computed(() => this.totalRevenue() - this.totalExpense());
+  // ---- Metas ----
+  activeGoals = computed(() => this.goals().filter(g => !g.isCompleted));
+  completedGoalsCount = computed(() => this.goals().filter(g => g.isCompleted).length);
+  topGoals = computed(() => [...this.activeGoals()].sort((a, b) => b.progressRate - a.progressRate).slice(0, 3));
 
-  // Contadores de pendentes/atraso ignoram o filtro de status (sempre são sobre
-  // pendentes), mas respeitam o período selecionado.
-  pendingCount = computed(() =>
-    this.periodFiltered().filter(t => t.status === 'Pending').length
-  );
-
-  overdueCount = computed(() =>
-    this.periodFiltered().filter(t => t.isOverdue && t.status === 'Pending').length
-  );
-
+  // ---- Transações recentes ----
   recentTransactions = computed(() =>
-    [...this.filteredTransactions()]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5)
+    [...this.periodFiltered()]
+      .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime())
+      .slice(0, 6)
   );
 
-  // Bar chart: receitas vs despesas por categoria, respeitando o filtro
-  barChartData = computed<ChartData<'bar'>>(() => {
-    void this.themeService.current();
-    const filtered = this.filteredTransactions();
-    const cats = this.categories();
-    const labels = cats.map(c => c.name);
-    const revenues = cats.map(c =>
-      filtered
-        .filter(t => t.categoryName === c.name && t.type === 'Revenue')
-        .reduce((s, t) => s + t.amount, 0)
-    );
-    const expenses = cats.map(c =>
-      filtered
-        .filter(t => t.categoryName === c.name && t.type === 'Expense')
-        .reduce((s, t) => s + t.amount, 0)
-    );
-    return {
-      labels,
-      datasets: [
-        { label: 'Receitas', data: revenues, backgroundColor: this.cssVar('--color-revenue') },
-        { label: 'Despesas', data: expenses, backgroundColor: this.cssVar('--color-expense') },
-      ],
-    };
-  });
+  // ---- Gráfico: Despesas por Categoria ----
+  private static readonly EXPENSE_PALETTE = [
+    '#D85A30', '#993C1D', '#8e24aa', '#d81b60', '#f4511e',
+    '#BA7517', '#6d4c41', '#bf360c', '#e53935', '#c0392b',
+  ];
 
-  barChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    plugins: { legend: { position: 'top' } },
-    scales: {
-      y: { beginAtZero: true, ticks: { callback: (v) => `R$ ${Number(v).toFixed(0)}` } },
-    },
-  };
-
-  // Doughnut: distribuição de status dentro do período selecionado.
-  pieChartData = computed<ChartData<'doughnut'>>(() => {
+  expensePieData = computed<ChartData<'doughnut'>>(() => {
     void this.themeService.current();
-    const all = this.periodFiltered();
-    const pending = all.filter(t => t.status === 'Pending').length;
-    const paid = all.filter(t => t.status === 'Paid').length;
-    const cancelled = all.filter(t => t.status === 'Cancelled').length;
+    const palette = [this.cssVar('--color-expense'), ...DashboardComponent.EXPENSE_PALETTE.slice(1)];
+    const expenses = this.periodFiltered().filter(t => t.type === 'Expense' && t.status === 'Paid');
+    const byCategory = new Map<string, number>();
+    for (const t of expenses) {
+      const key = t.categoryName || 'Sem categoria';
+      byCategory.set(key, (byCategory.get(key) ?? 0) + t.amount);
+    }
+    const entries = [...byCategory.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
     return {
-      labels: ['Pendente', 'Pago', 'Cancelado'],
+      labels: entries.map(([k]) => k),
       datasets: [{
-        data: [pending, paid, cancelled],
-        backgroundColor: ['#ff9800', this.cssVar('--color-revenue'), '#9e9e9e'],
+        data: entries.map(([, v]) => v),
+        backgroundColor: entries.map((_, i) => palette[i % palette.length]),
       }],
     };
   });
 
-  pieChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    plugins: { legend: { position: 'bottom' } },
-  };
-
-  // Paletas separadas para receitas (verdes/azuis) e despesas (vermelhos/laranjas).
-  private static readonly REVENUE_PALETTE = [
-    '#1D9E75', '#0F6E56', '#5e35b1', '#1e88e5', '#00897b',
-    '#7cb342', '#039be5', '#3949ab', '#00acc1', '#558b2f',
-  ];
-  private static readonly EXPENSE_PALETTE = [
-    '#D85A30', '#993C1D', '#8e24aa', '#d81b60', '#f4511e',
-    '#993C1D', '#D85A30', '#BA7517', '#6d4c41', '#bf360c',
-  ];
-
-  // Pizza: receitas por categoria (respeita período + filtro de status).
-  revenueByCategoryChart = computed<ChartData<'pie'>>(() => {
-    void this.themeService.current();
-    const palette = [this.cssVar('--color-revenue'), ...DashboardComponent.REVENUE_PALETTE.slice(1)];
-    return this.buildCategoryPie('Revenue', palette);
-  });
-
-  // Pizza: despesas por categoria (respeita período + filtro de status).
-  expenseByCategoryChart = computed<ChartData<'pie'>>(() => {
-    void this.themeService.current();
-    const palette = [this.cssVar('--color-expense'), ...DashboardComponent.EXPENSE_PALETTE.slice(1)];
-    return this.buildCategoryPie('Expense', palette);
-  });
-
-  categoryPieOptions: ChartConfiguration['options'] = {
+  expensePieOptions: ChartConfiguration['options'] = {
     responsive: true,
     plugins: {
       legend: { position: 'bottom' },
@@ -235,121 +160,100 @@ export class DashboardComponent implements OnInit {
         callbacks: {
           label: (ctx) => {
             const value = Number(ctx.parsed) || 0;
-            const dataset = ctx.dataset.data as number[];
-            const total = dataset.reduce((s, v) => s + (Number(v) || 0), 0);
+            const total = (ctx.dataset.data as number[]).reduce((s, v) => s + (Number(v) || 0), 0);
             const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
-            const formatted = value.toLocaleString('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            });
-            return `${ctx.label}: ${formatted} (${pct}%)`;
+            return `${ctx.label}: ${value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (${pct}%)`;
           },
         },
       },
     },
   };
 
-  private buildCategoryPie(
-    type: 'Revenue' | 'Expense',
-    palette: readonly string[]
-  ): ChartData<'pie'> {
-    const filtered = this.filteredTransactions().filter(t => t.type === type);
-    const totalsByCategory = new Map<string, number>();
-    for (const t of filtered) {
-      const key = t.categoryName ?? 'Sem categoria';
-      totalsByCategory.set(key, (totalsByCategory.get(key) ?? 0) + t.amount);
-    }
-    // Mantém somente categorias com valor > 0 e ordena do maior para o menor
-    // (a fatia maior fica em destaque na pizza).
-    const entries = [...totalsByCategory.entries()]
-      .filter(([, v]) => v > 0)
-      .sort((a, b) => b[1] - a[1]);
-
-    const labels = entries.map(([k]) => k);
-    const data = entries.map(([, v]) => v);
-    const backgroundColor = entries.map((_, i) => palette[i % palette.length]);
-
+  // ---- Gráfico: Saldo por conta (barras horizontais) ----
+  accountBarData = computed<ChartData<'bar'>>(() => {
+    void this.themeService.current();
+    const accs = this.accounts().slice(0, 8);
     return {
-      labels,
-      datasets: [{ data, backgroundColor }],
+      labels: accs.map(a => a.name),
+      datasets: [{
+        label: 'Saldo atual',
+        data: accs.map(a => a.currentBalance),
+        backgroundColor: accs.map(a => a.currentBalance >= 0 ? this.cssVar('--color-revenue') : this.cssVar('--color-expense')),
+        borderRadius: 4,
+      }],
     };
-  }
+  });
+
+  accountBarOptions: ChartConfiguration['options'] = {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { callback: (v) => `R$ ${Number(v).toLocaleString('pt-BR')}` } },
+    },
+  };
 
   ngOnInit(): void {
     forkJoin({
       transactions: this.transactionService.getAll(),
-      categories: this.categoryService.getAll(),
+      accounts:     this.accountService.getAll(),
+      portfolio:    this.investmentService.getPortfolio(),
+      loanSummary:  this.loanService.getSummary(),
+      goals:        this.goalService.getAll(),
+      netWorth:     this.patrimonyService.getNetWorth(),
     }).subscribe({
-      next: ({ transactions, categories }) => {
-        this.transactions.set(transactions);
-        this.categories.set(categories);
+      next: (data) => {
+        this.transactions.set(data.transactions);
+        this.accounts.set(data.accounts);
+        this.portfolio.set(data.portfolio);
+        this.loanSummary.set(data.loanSummary);
+        this.goals.set(data.goals);
+        this.netWorth.set(data.netWorth);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
   }
 
-  setFilter(value: 'all' | 'paid' | 'unpaid'): void {
-    this.filterMode.set(value);
-  }
-
-  setPeriod(value: 'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all' | 'custom'): void {
+  setPeriod(value: 'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all'): void {
     this.periodMode.set(value);
-    // Ao entrar no modo personalizado pela primeira vez, pré-preenche o
-    // intervalo com o mês atual para o usuário ter um ponto de partida.
-    if (value === 'custom' && (!this.customStartDate() || !this.customEndDate())) {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      this.customStartDate.set(start);
-      this.customEndDate.set(end);
-    }
   }
 
-  // Retorna o intervalo [start, end) correspondente ao período selecionado,
-  // ou null para "tudo" (sem filtro de data).
-  private getPeriodRange(
-    mode: 'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all' | 'custom'
-  ): { start: Date; end: Date } | null {
+  periodLabel(): string {
+    const map: Record<string, string> = {
+      thisMonth:  'Este mês',
+      lastMonth:  'Mês passado',
+      last30Days: 'Últimos 30 dias',
+      thisYear:   'Este ano',
+      all:        'Tudo',
+    };
+    return map[this.periodMode()] ?? '';
+  }
+
+  private getPeriodRange(mode: string): { start: Date; end: Date } | null {
     const now = new Date();
     switch (mode) {
-      case 'thisMonth': {
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        return { start, end };
-      }
-      case 'lastMonth': {
-        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const end = new Date(now.getFullYear(), now.getMonth(), 1);
-        return { start, end };
-      }
+      case 'thisMonth':  return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth() + 1, 1) };
+      case 'lastMonth':  return { start: new Date(now.getFullYear(), now.getMonth() - 1, 1), end: new Date(now.getFullYear(), now.getMonth(), 1) };
       case 'last30Days': {
-        const start = new Date(now);
-        start.setDate(start.getDate() - 30);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(now);
-        end.setDate(end.getDate() + 1);
-        end.setHours(0, 0, 0, 0);
-        return { start, end };
+        const s = new Date(now); s.setDate(s.getDate() - 30); s.setHours(0, 0, 0, 0);
+        const e = new Date(now); e.setDate(e.getDate() + 1); e.setHours(0, 0, 0, 0);
+        return { start: s, end: e };
       }
-      case 'thisYear': {
-        const start = new Date(now.getFullYear(), 0, 1);
-        const end = new Date(now.getFullYear() + 1, 0, 1);
-        return { start, end };
-      }
-      case 'all':
-      case 'custom':
-      default:
-        return null;
+      case 'thisYear':   return { start: new Date(now.getFullYear(), 0, 1), end: new Date(now.getFullYear() + 1, 0, 1) };
+      default:           return null;
     }
   }
 
   statusLabel(status: string): string {
-    const map: Record<string, string> = {
-      Pending: 'Pendente',
-      Paid: 'Pago',
-      Cancelled: 'Cancelado',
-    };
+    const map: Record<string, string> = { Pending: 'Pendente', Paid: 'Pago', Cancelled: 'Cancelado' };
     return map[status] ?? status;
+  }
+
+  goalProgressColor(rate: number): string {
+    if (rate >= 100) return '#2e7d32';
+    if (rate >= 60)  return '#1976d2';
+    if (rate >= 30)  return '#ff9800';
+    return '#e53935';
   }
 }

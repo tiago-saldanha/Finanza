@@ -33,7 +33,7 @@
             <input matInput
                    [matDatepicker]="startPicker"
                    [value]="customStartDate()"
-                   (dateChange)="customStartDate.set($event.value)" />
+                   (dateChange)="customStartDate.set($event.value); persistFilters()" />
             <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
             <mat-datepicker #startPicker />
           </mat-form-field>
@@ -44,7 +44,7 @@
                    [matDatepicker]="endPicker"
                    [value]="customEndDate()"
                    [min]="customStartDate()"
-                   (dateChange)="customEndDate.set($event.value)" />
+                   (dateChange)="customEndDate.set($event.value); persistFilters()" />
             <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
             <mat-datepicker #endPicker />
           </mat-form-field>
@@ -123,46 +123,7 @@
                 </button>
               </mat-card-header>
 
-              <mat-card-content>
-                <div class="cat-totals">
-                  <div class="cat-total-item">
-                    <div class="ct-label">Recebido</div>
-                    <div class="ct-value text-revenue">
-                      {{ cat.total.received | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
-                    </div>
-                  </div>
-                  <div class="cat-divider"></div>
-                  <div class="cat-total-item">
-                    <div class="ct-label">Gasto</div>
-                    <div class="ct-value text-expense">
-                      {{ cat.total.spent | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
-                    </div>
-                  </div>
-                  <div class="cat-divider"></div>
-                  <div class="cat-total-item">
-                    <div class="ct-label">Saldo</div>
-                    <div class="ct-value"
-                      [class.text-revenue]="cat.total.balance >= 0"
-                      [class.text-expense]="cat.total.balance < 0">
-                      {{ cat.total.balance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Balance progress bar -->
-                @if (cat.total.received > 0 || cat.total.spent > 0) {
-                  <div class="balance-bar-wrapper" matTooltip="Percentual gasto do total recebido">
-                    <div class="balance-bar">
-                      <div
-                        class="balance-bar-fill"
-                        [style.width.%]="spentPercent(cat)"
-                        [style.background]="spentPercent(cat) > 90 ? '#f44336' : spentPercent(cat) > 60 ? '#ff9800' : '#4caf50'"
-                      ></div>
-                    </div>
-                    <span class="balance-bar-label">{{ spentPercent(cat) | number:'1.0-0' }}% gasto</span>
-                  </div>
-                }
-              </mat-card-content>
+              <mat-card-content></mat-card-content>
             </mat-card>
           }
         </div>

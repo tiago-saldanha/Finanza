@@ -20,6 +20,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 
 import { TransactionService } from '../../../core/services/transaction.service';
+import { FilterStateService } from '../../../core/services/filter-state.service';
 import {
   Transaction,
   TransactionStatus,
@@ -31,6 +32,14 @@ import { combineLatest, debounceTime, distinctUntilChanged, Subject, switchMap, 
 import { TransactionFormComponent, TransactionFormData } from '../transaction-form/transaction-form.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PayTransactionDialogComponent } from '../pay-transaction-dialog/pay-transaction-dialog.component';
+
+interface TransactionFiltersState {
+  search: string;
+  status: string;
+  type: string;
+  startDate: string | null;
+  endDate: string | null;
+}
 
 @Component({
   selector: 'app-transaction-list',
@@ -64,6 +73,7 @@ import { PayTransactionDialogComponent } from '../pay-transaction-dialog/pay-tra
 })
 export class TransactionListComponent implements OnInit, OnDestroy {
   private readonly transactionService = inject(TransactionService);
+  private readonly filterState = inject(FilterStateService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroy$ = new Subject<void>();
@@ -71,13 +81,15 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   loading = signal(true);
   transactions = signal<Transaction[]>([]);
 
+  private readonly FILTER_KEY = 'transactions';
+
   searchCtrl    = new FormControl('');
   statusCtrl    = new FormControl('');
   typeCtrl      = new FormControl('');
   startDateCtrl = new FormControl<Date | null>(this.firstDayOfMonth());
   endDateCtrl   = new FormControl<Date | null>(this.lastDayOfMonth());
 
-  displayedColumns = ['type', 'description', 'amount', 'dueDate', 'status', 'actions'];
+  displayedColumns = ['type', 'description', 'amount', 'dueDate', 'paidAt', 'status', 'actions'];
   pageSize  = 10;
   pageIndex = signal(0);
 
@@ -95,10 +107,12 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
+    this.restoreFilters();
+
     combineLatest([
-      this.searchCtrl.valueChanges.pipe(startWith(''), debounceTime(400), distinctUntilChanged()),
-      this.statusCtrl.valueChanges.pipe(startWith('')),
-      this.typeCtrl.valueChanges.pipe(startWith('')),
+      this.searchCtrl.valueChanges.pipe(startWith(this.searchCtrl.value), debounceTime(400), distinctUntilChanged()),
+      this.statusCtrl.valueChanges.pipe(startWith(this.statusCtrl.value)),
+      this.typeCtrl.valueChanges.pipe(startWith(this.typeCtrl.value)),
       this.startDateCtrl.valueChanges.pipe(startWith(this.startDateCtrl.value)),
       this.endDateCtrl.valueChanges.pipe(startWith(this.endDateCtrl.value)),
     ])
@@ -106,6 +120,7 @@ export class TransactionListComponent implements OnInit, OnDestroy {
         switchMap(([search, status, type, startDate, endDate]) => {
           this.loading.set(true);
           this.pageIndex.set(0);
+          this.persistFilters(search, status, type, startDate, endDate);
           return this.transactionService.search({
             search: search ?? '',
             status: (status as TransactionStatus) ?? '',
@@ -123,6 +138,26 @@ export class TransactionListComponent implements OnInit, OnDestroy {
         },
         error: () => this.loading.set(false),
       });
+  }
+
+  private restoreFilters(): void {
+    const saved = this.filterState.load<TransactionFiltersState>(this.FILTER_KEY);
+    if (!saved) return;
+    this.searchCtrl.setValue(saved.search ?? '', { emitEvent: false });
+    this.statusCtrl.setValue(saved.status ?? '', { emitEvent: false });
+    this.typeCtrl.setValue(saved.type ?? '', { emitEvent: false });
+    this.startDateCtrl.setValue(saved.startDate ? new Date(saved.startDate) : this.firstDayOfMonth(), { emitEvent: false });
+    this.endDateCtrl.setValue(saved.endDate ? new Date(saved.endDate) : this.lastDayOfMonth(), { emitEvent: false });
+  }
+
+  private persistFilters(search: string | null, status: string | null, type: string | null, startDate: Date | null, endDate: Date | null): void {
+    this.filterState.save<TransactionFiltersState>(this.FILTER_KEY, {
+      search:    search    ?? '',
+      status:    status    ?? '',
+      type:      type      ?? '',
+      startDate: startDate ? startDate.toISOString() : null,
+      endDate:   endDate   ? endDate.toISOString()   : null,
+    });
   }
 
   ngOnDestroy(): void {
@@ -234,6 +269,7 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
+    this.filterState.clear(this.FILTER_KEY);
     this.searchCtrl.setValue('');
     this.statusCtrl.setValue('');
     this.typeCtrl.setValue('');
