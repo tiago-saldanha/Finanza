@@ -13,7 +13,16 @@
   gap: 12px;
   margin-bottom: 20px;
   .page-title { margin: 0; }
-  .period-select { width: 200px; }
+}
+
+.period-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .period-select { width: calc(20% - 13px); min-width: 200px; }
+  .date-select   { width: 152px; }
 }
 
 // ── KPIs ──────────────────────────────────────────────────────────

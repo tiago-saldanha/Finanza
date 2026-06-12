@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { ThemeService } from '../../core/services/theme.service';
 import { RouterLink } from '@angular/router';
@@ -41,6 +42,7 @@ Chart.register(...registerables);
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     CurrencyPipe,
     DatePipe,
     DecimalPipe,
@@ -86,7 +88,13 @@ export class DashboardComponent implements OnInit {
   netWorth      = signal<NetWorth | null>(null);
 
   // ---- Período (transações do mês) ----
-  periodMode = signal<'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all'>('thisMonth');
+  periodMode = signal<'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all' | 'custom'>('thisMonth');
+  showCustomDates = computed(() => this.periodMode() === 'custom');
+
+  customStartCtrl = new FormControl<Date | null>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  customEndCtrl   = new FormControl<Date | null>(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0));
+  customStart     = signal<Date | null>(this.customStartCtrl.value);
+  customEnd       = signal<Date | null>(this.customEndCtrl.value);
 
   private periodFiltered = computed(() => {
     const range = this.getPeriodRange(this.periodMode());
@@ -215,8 +223,13 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  setPeriod(value: 'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all'): void {
-    this.periodMode.set(value);
+  setPeriod(value: string): void {
+    this.periodMode.set(value as ReturnType<typeof this.periodMode>);
+  }
+
+  onCustomDateChange(): void {
+    this.customStart.set(this.customStartCtrl.value);
+    this.customEnd.set(this.customEndCtrl.value);
   }
 
   periodLabel(): string {
@@ -226,6 +239,7 @@ export class DashboardComponent implements OnInit {
       last30Days: 'Últimos 30 dias',
       thisYear:   'Este ano',
       all:        'Tudo',
+      custom:     'Personalizado',
     };
     return map[this.periodMode()] ?? '';
   }
@@ -241,6 +255,13 @@ export class DashboardComponent implements OnInit {
         return { start: s, end: e };
       }
       case 'thisYear':   return { start: new Date(now.getFullYear(), 0, 1), end: new Date(now.getFullYear() + 1, 0, 1) };
+      case 'custom': {
+        const s = this.customStart();
+        const e = this.customEnd();
+        if (!s || !e) return null;
+        const end = new Date(e); end.setHours(23, 59, 59, 999);
+        return { start: s, end };
+      }
       default:           return null;
     }
   }
