@@ -23,26 +23,22 @@
 
     <!-- ── Net Worth Banner ──────────────────────────────────────────── -->
     <div class="networth-banner" [class.positive]="nw.netWorth >= 0" [class.negative]="nw.netWorth < 0">
-      <div class="nw-main">
-        <div class="nw-label">Patrimônio Líquido</div>
-        <div class="nw-value">{{ nw.netWorth | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+      <div class="nw-card nw-card--main">
+        <mat-icon class="nw-card-icon icon-networth">account_balance_wallet</mat-icon>
+        <div class="nw-card-label">Patrimônio Líquido</div>
+        <div class="nw-card-value">{{ nw.netWorth | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
       </div>
       <mat-divider vertical />
-      <div class="nw-side">
-        <div class="nw-item">
-          <mat-icon class="icon-asset">trending_up</mat-icon>
-          <div>
-            <div class="nw-sub-label">Total de Ativos</div>
-            <div class="nw-sub-value text-asset">{{ nw.totalAssets | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
-          </div>
-        </div>
-        <div class="nw-item">
-          <mat-icon class="icon-liability">trending_down</mat-icon>
-          <div>
-            <div class="nw-sub-label">Total de Passivos</div>
-            <div class="nw-sub-value text-liability">{{ nw.totalLiabilities | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
-          </div>
-        </div>
+      <div class="nw-card">
+        <mat-icon class="nw-card-icon icon-asset">trending_up</mat-icon>
+        <div class="nw-card-label">Total de Ativos</div>
+        <div class="nw-card-value text-asset">{{ nw.totalAssets | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+      </div>
+      <mat-divider vertical />
+      <div class="nw-card">
+        <mat-icon class="nw-card-icon icon-liability">trending_down</mat-icon>
+        <div class="nw-card-label">Total de Passivos</div>
+        <div class="nw-card-value text-liability">{{ nw.totalLiabilities | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
       </div>
     </div>
 
