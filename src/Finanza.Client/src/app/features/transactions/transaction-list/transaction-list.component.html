@@ -31,6 +31,7 @@
             <mat-option value="">Todos</mat-option>
             <mat-option value="Revenue">Receita</mat-option>
             <mat-option value="Expense">Despesa</mat-option>
+            <mat-option value="Transfer">Transferência</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -76,8 +77,15 @@
             <ng-container matColumnDef="type">
               <th mat-header-cell *matHeaderCellDef>Tipo</th>
               <td mat-cell *matCellDef="let row">
-                <div class="type-indicator" [class.type-revenue]="row.type === 'Revenue'" [class.type-expense]="row.type === 'Expense'">
-                  <mat-icon>{{ row.type === 'Revenue' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                <div class="type-indicator"
+                     [class.type-revenue]="row.type === 'Revenue'"
+                     [class.type-expense]="row.type === 'Expense'"
+                     [class.type-transfer]="row.type === 'Transfer'">
+                  <mat-icon>{{
+                    row.type === 'Revenue' ? 'arrow_upward' :
+                    row.type === 'Expense' ? 'arrow_downward' :
+                    'swap_horiz'
+                  }}</mat-icon>
                 </div>
               </td>
             </ng-container>
@@ -97,8 +105,15 @@
             <ng-container matColumnDef="amount">
               <th mat-header-cell *matHeaderCellDef>Valor</th>
               <td mat-cell *matCellDef="let row">
-                <span [class.text-revenue]="row.type === 'Revenue'" [class.text-expense]="row.type === 'Expense'" style="font-weight: 600;">
+                <span [class.text-revenue]="row.type === 'Revenue'"
+                      [class.text-expense]="row.type === 'Expense'"
+                      style="font-weight: 600;">
                   {{ row.amount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                  @if (row.type === 'Transfer' && row.destinationAccountName) {
+                    <span style="font-size:11px; font-weight:400; color:#757575; display:block;">
+                      → {{ row.destinationAccountName }}
+                    </span>
+                  }
                 </span>
               </td>
             </ng-container>

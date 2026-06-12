@@ -14,23 +14,40 @@ namespace Finanza.Infrastructure.Repositories
             => await context.Transactions.AddAsync(transaction);
 
         public async Task<List<Transaction>> GetAllAsync()
-            => await context.Transactions.AsNoTracking().Include(q => q.Category).ToListAsync();
+            => await context.Transactions.AsNoTracking()
+                .Include(q => q.Category)
+                .Include(q => q.Account)
+                .Include(q => q.DestinationAccount)
+                .ToListAsync();
 
         public async Task<Transaction> GetByIdAsync(Guid id)
-            => await context.Transactions.AsNoTracking().Include(q => q.Category).FirstOrDefaultAsync(q => q.Id == id) ?? throw new EntityNotFoundInfraException("Transação não encontrada");
+            => await context.Transactions.AsNoTracking()
+                .Include(q => q.Category)
+                .Include(q => q.Account)
+                .Include(q => q.DestinationAccount)
+                .FirstOrDefaultAsync(q => q.Id == id)
+               ?? throw new EntityNotFoundInfraException("Transação não encontrada");
 
         public void Update(Transaction transaction)
             => context.Entry(transaction).State = EntityState.Modified;
 
         public async Task<List<Transaction>> GetByFilterAsync(Expression<Func<Transaction, bool>> predicate)
-            => await context.Transactions.Where(predicate).AsNoTracking().Include(q => q.Category).ToListAsync();
+            => await context.Transactions.Where(predicate).AsNoTracking()
+                .Include(q => q.Category)
+                .Include(q => q.Account)
+                .Include(q => q.DestinationAccount)
+                .ToListAsync();
 
         public void Remove(Transaction transaction)
             => context.Transactions.Remove(transaction);
 
         public async Task<List<Transaction>> SearchAsync(string? search, TransactionStatus? status, TransactionType? type, DateTime? startDate, DateTime? endDate)
         {
-            var query = context.Transactions.AsNoTracking().Include(q => q.Category).AsQueryable();
+            var query = context.Transactions.AsNoTracking()
+                .Include(q => q.Category)
+                .Include(q => q.Account)
+                .Include(q => q.DestinationAccount)
+                .AsQueryable();
 
             if (status.HasValue)
                 query = query.Where(t => t.Status == status.Value);

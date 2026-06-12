@@ -3,6 +3,7 @@
     public enum TransactionTypeDto
     {
         Revenue,
-        Expense
+        Expense,
+        Transfer
     }
 }

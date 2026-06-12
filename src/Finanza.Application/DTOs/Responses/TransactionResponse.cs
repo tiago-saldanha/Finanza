@@ -16,6 +16,8 @@ namespace Finanza.Application.DTOs.Responses
         public bool IsOverdue { get; private set; }
         public Guid? AccountId { get; private set; }
         public string? AccountName { get; private set; }
+        public Guid? DestinationAccountId { get; private set; }
+        public string? DestinationAccountName { get; private set; }
 
         public static TransactionResponse Create(Transaction transaction)
         {
@@ -29,10 +31,12 @@ namespace Finanza.Application.DTOs.Responses
                 PaymentDate = transaction.PaymentDate,
                 Status = transaction.Status.ToString(),
                 Type = transaction.Type.ToString(),
-                CategoryName = transaction.Category?.Name ?? "Sem Categoria",
+                CategoryName = transaction.Category?.Name ?? string.Empty,
                 IsOverdue = transaction.IsOverdue(DateTime.Today),
                 AccountId = transaction.AccountId,
                 AccountName = transaction.Account?.Name,
+                DestinationAccountId = transaction.DestinationAccountId,
+                DestinationAccountName = transaction.DestinationAccount?.Name,
             };
         }
     }

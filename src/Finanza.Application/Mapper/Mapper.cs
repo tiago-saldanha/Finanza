@@ -16,15 +16,17 @@ namespace Finanza.Application.Mapper
 
         public static TransactionType TransactionType(TransactionTypeDto type) => type switch
         {
-            TransactionTypeDto.Revenue => Domain.Enums.TransactionType.Revenue,
-            TransactionTypeDto.Expense => Domain.Enums.TransactionType.Expense,
+            TransactionTypeDto.Revenue  => Domain.Enums.TransactionType.Revenue,
+            TransactionTypeDto.Expense  => Domain.Enums.TransactionType.Expense,
+            TransactionTypeDto.Transfer => Domain.Enums.TransactionType.Transfer,
             _ => throw new TransactionTypeAppException()
         };
 
         public static TransactionType TransactionType(string transactionType) => transactionType.ToLower() switch
         {
-            "revenue" => Domain.Enums.TransactionType.Revenue,
-            "expense" => Domain.Enums.TransactionType.Expense,
+            "revenue"  => Domain.Enums.TransactionType.Revenue,
+            "expense"  => Domain.Enums.TransactionType.Expense,
+            "transfer" => Domain.Enums.TransactionType.Transfer,
             _ => throw new TransactionTypeAppException()
         };
     }

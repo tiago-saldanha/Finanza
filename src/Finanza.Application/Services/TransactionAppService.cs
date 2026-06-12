@@ -85,7 +85,8 @@ namespace Finanza.Application.Services
                 request.DueDate,
                 Mapper.Mapper.TransactionType(request.TransactionType),
                 request.CategoryId,
-                request.AccountId
+                request.AccountId,
+                request.DestinationAccountId
             );
             repository.Update(transaction);
             await unitOfWork.CommitAsync();

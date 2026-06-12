@@ -21,8 +21,8 @@ namespace Finanza.Application.Services
                          && t.Dates.DueDate.Month == month)
                 .ToList();
 
-            var revenue  = monthTx.Where(t => t.Type == TransactionType.Revenue).Sum(t => t.Amount.Value);
-            var expenses = monthTx.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount.Value);
+            var revenue  = monthTx.Where(t => t.Type == TransactionType.Revenue  && t.Type != TransactionType.Transfer).Sum(t => t.Amount.Value);
+            var expenses = monthTx.Where(t => t.Type == TransactionType.Expense  && t.Type != TransactionType.Transfer).Sum(t => t.Amount.Value);
             var savings  = revenue - expenses;
 
             var savingsRate  = revenue > 0 ? savings  / revenue * 100 : 0;
@@ -39,6 +39,7 @@ namespace Finanza.Application.Services
                     allTransactions
                         .Where(t => t.Status == TransactionStatus.Paid
                                  && t.Type == TransactionType.Expense
+                                 && t.Type != TransactionType.Transfer
                                  && t.Dates.DueDate.Year == m.Year
                                  && t.Dates.DueDate.Month == m.Month)
                         .Sum(t => t.Amount.Value));
@@ -49,7 +50,9 @@ namespace Finanza.Application.Services
                 var paid = a.Transactions.Where(t => t.Status == TransactionStatus.Paid);
                 return a.InitialBalance.Value
                     + paid.Where(t => t.Type == TransactionType.Revenue).Sum(t => t.Amount.Value)
-                    - paid.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount.Value);
+                    - paid.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount.Value)
+                    - paid.Where(t => t.Type == TransactionType.Transfer).Sum(t => t.Amount.Value)
+                    + a.IncomingTransfers.Where(t => t.Status == TransactionStatus.Paid).Sum(t => t.Amount.Value);
             });
 
             var emergencyMonths = avgMonthlyExpenses > 0

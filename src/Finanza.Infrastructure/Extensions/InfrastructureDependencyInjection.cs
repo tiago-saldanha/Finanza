@@ -43,6 +43,7 @@ public static class InfrastructureDependencyInjection
         // â”€â”€ Multi-tenancy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         services.AddScoped<ITenantConnectionResolver, TenantConnectionResolver>();
         services.AddScoped<TenantProvisionerService>();
+        services.AddHostedService<TenantMigrationStartupService>();
 
         // TenantDbContext com connection string resolvida por request
         services.AddDbContext<TenantDbContext>((sp, options) =>

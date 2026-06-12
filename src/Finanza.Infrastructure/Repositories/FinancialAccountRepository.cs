@@ -9,10 +9,16 @@ namespace Finanza.Infrastructure.Repositories
     public class FinancialAccountRepository(TenantDbContext context) : IFinancialAccountRepository
     {
         public async Task<IEnumerable<Account>> GetAllAsync()
-            => await context.Accounts.AsNoTracking().Include(a => a.Transactions).ToListAsync();
+            => await context.Accounts.AsNoTracking()
+                .Include(a => a.Transactions)
+                .Include(a => a.IncomingTransfers)
+                .ToListAsync();
 
         public async Task<Account> GetByIdAsync(Guid id)
-            => await context.Accounts.AsNoTracking().Include(a => a.Transactions).FirstOrDefaultAsync(a => a.Id == id)
+            => await context.Accounts.AsNoTracking()
+                .Include(a => a.Transactions)
+                .Include(a => a.IncomingTransfers)
+                .FirstOrDefaultAsync(a => a.Id == id)
                ?? throw new EntityNotFoundInfraException("Conta não encontrada");
 
         public async Task AddAsync(Account account)

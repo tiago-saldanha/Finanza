@@ -1,5 +1,5 @@
 export type TransactionStatus = 'Pending' | 'Paid' | 'Cancelled';
-export type TransactionType = 'Revenue' | 'Expense';
+export type TransactionType = 'Revenue' | 'Expense' | 'Transfer';
 
 export interface Transaction {
   id: string;
@@ -14,6 +14,8 @@ export interface Transaction {
   isOverdue: boolean;
   accountId?: string;
   accountName?: string;
+  destinationAccountId?: string;
+  destinationAccountName?: string;
 }
 
 export interface CreateTransactionRequest {
@@ -21,9 +23,10 @@ export interface CreateTransactionRequest {
   amount: number;
   dueDate: string;
   transactionType: TransactionType;
-  categoryId: string;
+  categoryId?: string;
   createdAt: string;
   accountId?: string;
+  destinationAccountId?: string;
 }
 
 export interface PayTransactionRequest {
@@ -35,8 +38,9 @@ export interface UpdateTransactionRequest {
   amount: number;
   dueDate: string;
   transactionType: TransactionType;
-  categoryId: string;
+  categoryId?: string;
   accountId?: string;
+  destinationAccountId?: string;
 }
 
 export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {
@@ -48,4 +52,5 @@ export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {
 export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
   Revenue: 'Receita',
   Expense: 'Despesa',
+  Transfer: 'Transferência',
 };

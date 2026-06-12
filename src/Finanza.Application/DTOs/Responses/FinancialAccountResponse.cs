@@ -13,13 +13,12 @@ namespace Finanza.Application.DTOs.Responses
 
         public static FinancialAccountResponse Create(Account account)
         {
-            var paidRevenues = account.Transactions
-                .Where(t => t.Status == TransactionStatus.Paid && t.Type == TransactionType.Revenue)
-                .Sum(t => t.Amount.Value);
+            var paid = account.Transactions.Where(t => t.Status == TransactionStatus.Paid);
 
-            var paidExpenses = account.Transactions
-                .Where(t => t.Status == TransactionStatus.Paid && t.Type == TransactionType.Expense)
-                .Sum(t => t.Amount.Value);
+            var revenues        = paid.Where(t => t.Type == TransactionType.Revenue).Sum(t => t.Amount.Value);
+            var expenses        = paid.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount.Value);
+            var transfersOut    = paid.Where(t => t.Type == TransactionType.Transfer).Sum(t => t.Amount.Value);
+            var transfersIn     = account.IncomingTransfers.Where(t => t.Status == TransactionStatus.Paid).Sum(t => t.Amount.Value);
 
             return new FinancialAccountResponse
             {
@@ -27,7 +26,7 @@ namespace Finanza.Application.DTOs.Responses
                 Name = account.Name,
                 Type = account.Type.ToString(),
                 InitialBalance = account.InitialBalance,
-                CurrentBalance = account.InitialBalance.Value + paidRevenues - paidExpenses,
+                CurrentBalance = account.InitialBalance.Value + revenues - expenses - transfersOut + transfersIn,
             };
         }
     }

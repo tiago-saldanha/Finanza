@@ -10,7 +10,7 @@ namespace Finanza.Domain.Entities
     {
         protected Transaction() { }
 
-        private Transaction(Guid id, Description description, Money amount, TransactionDates dates, TransactionType type, Guid categoryId, Guid? accountId)
+        private Transaction(Guid id, Description description, Money amount, TransactionDates dates, TransactionType type, Guid? categoryId, Guid? accountId, Guid? destinationAccountId)
         {
             Id = id;
             Description = description;
@@ -19,10 +19,11 @@ namespace Finanza.Domain.Entities
             Type = type;
             CategoryId = categoryId;
             AccountId = accountId;
+            DestinationAccountId = destinationAccountId;
             Status = TransactionStatus.Pending;
         }
 
-        public static Transaction Create(string description, decimal amount, DateTime dueDate, TransactionType type, Guid categoryId, DateTime createdAt, Guid? accountId = null)
+        public static Transaction Create(string description, decimal amount, DateTime dueDate, TransactionType type, Guid? categoryId, DateTime createdAt, Guid? accountId = null, Guid? destinationAccountId = null)
         {
             return new Transaction(
                 Guid.NewGuid(),
@@ -31,7 +32,8 @@ namespace Finanza.Domain.Entities
                 new TransactionDates(dueDate, createdAt),
                 type,
                 categoryId,
-                accountId
+                accountId,
+                destinationAccountId
             );
         }
 
@@ -42,10 +44,12 @@ namespace Finanza.Domain.Entities
         public DateTime? PaymentDate { get; private set; }
         public TransactionStatus Status { get; private set; }
         public TransactionType Type { get; private set; }
-        public Guid CategoryId { get; private set; }
-        public virtual Category Category { get; private set; }
+        public Guid? CategoryId { get; private set; }
+        public virtual Category? Category { get; private set; }
         public Guid? AccountId { get; private set; }
         public virtual Account? Account { get; private set; }
+        public Guid? DestinationAccountId { get; private set; }
+        public virtual Account? DestinationAccount { get; private set; }
 
         public void Pay(DateTime paymentDate)
         {
@@ -89,7 +93,7 @@ namespace Finanza.Domain.Entities
             AddDomainEvent(new TransactionCancelEvent(Id, Status));
         }
 
-        public void Update(string description, decimal amount, DateTime dueDate, TransactionType type, Guid categoryId, Guid? accountId = null)
+        public void Update(string description, decimal amount, DateTime dueDate, TransactionType type, Guid? categoryId, Guid? accountId = null, Guid? destinationAccountId = null)
         {
             if (Status == TransactionStatus.Paid)
                 throw new TransactionUpdateException("Não é possível editar uma transação que já foi paga");
@@ -103,6 +107,7 @@ namespace Finanza.Domain.Entities
             Type = type;
             CategoryId = categoryId;
             AccountId = accountId;
+            DestinationAccountId = destinationAccountId;
         }
 
         public bool IsOverdue(DateTime today) => Status == TransactionStatus.Pending && today.Date > Dates.DueDate.Date;

@@ -37,5 +37,6 @@ namespace Finanza.Domain.Entities
         public AccountType Type { get; private set; }
         public Money InitialBalance { get; private set; }
         public virtual ICollection<Transaction> Transactions { get; set; } = [];
+        public virtual ICollection<Transaction> IncomingTransfers { get; set; } = [];
     }
 }

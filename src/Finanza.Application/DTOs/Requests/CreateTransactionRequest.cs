@@ -9,10 +9,10 @@ namespace Finanza.Application.DTOs.Requests
         public decimal Amount { get; set; }
         public DateTime DueDate { get; set; }
         public string TransactionType { get; set; }
-        public Guid CategoryId { get; set; }
+        public Guid? CategoryId { get; set; }
         public DateTime CreatedAt { get; set; }
-
         public Guid? AccountId { get; set; }
+        public Guid? DestinationAccountId { get; set; }
 
         public Transaction ToEntity()
         {
@@ -23,7 +23,8 @@ namespace Finanza.Application.DTOs.Requests
                 Map(TransactionType),
                 CategoryId,
                 CreatedAt,
-                AccountId
+                AccountId,
+                DestinationAccountId
             );
         }
 

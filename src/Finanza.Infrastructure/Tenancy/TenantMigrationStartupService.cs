@@ -1,44 +1,56 @@
 using Finanza.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Finanza.Infrastructure.Tenancy;
 
 /// <summary>
-/// Cria e inicializa o banco SQLite de um novo usuário no momento do cadastro.
-/// Para bancos existentes (antes das migrations), aplica esquema incremental
-/// sem recriar as tabelas já existentes.
+/// Aplica migrations incrementais em todos os bancos SQLite de tenants existentes
+/// quando a aplicação inicia. Garante que novos campos (ex: DestinationAccountId)
+/// sejam adicionados sem recriar os dados existentes.
 /// </summary>
-public class TenantProvisionerService(IConfiguration configuration)
+public class TenantMigrationStartupService(
+    IConfiguration configuration,
+    ILogger<TenantMigrationStartupService> logger) : IHostedService
 {
     private const string InitialMigrationId = "20260612000339_AddTransferTransaction";
 
-    public void ProvisionTenant(string userId)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        var baseFolder = configuration["TenantDb:BaseFolder"]!;
-        Directory.CreateDirectory(baseFolder);
+        var baseFolder = configuration["TenantDb:BaseFolder"];
+        if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
+            return Task.CompletedTask;
 
-        var dbPath = Path.Combine(baseFolder, $"user_{userId}.db");
-        var connectionString = $"Data Source={dbPath}";
+        foreach (var dbFile in Directory.GetFiles(baseFolder, "user_*.db"))
+        {
+            try
+            {
+                MigrateIfNeeded(dbFile);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Falha ao migrar banco de tenant: {DbFile}", dbFile);
+            }
+        }
 
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    private static void MigrateIfNeeded(string dbPath)
+    {
         var options = new DbContextOptionsBuilder<TenantDbContext>()
-            .UseSqlite(connectionString)
+            .UseSqlite($"Data Source={dbPath}")
             .Options;
 
         using var context = new TenantDbContext(options);
-
-        if (File.Exists(dbPath))
-            MigrateExistingDatabase(context);
-        else
-            context.Database.Migrate();
-    }
-
-    private static void MigrateExistingDatabase(TenantDbContext context)
-    {
         using var conn = context.Database.GetDbConnection();
         conn.Open();
 
-        // 1. Garante que a tabela de histórico existe
+        // Garante tabela de histórico
         using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = """
@@ -50,7 +62,7 @@ public class TenantProvisionerService(IConfiguration configuration)
             cmd.ExecuteNonQuery();
         }
 
-        // 2. Marca a migration inicial como aplicada (se ainda não estiver)
+        // Marca migration inicial se não estiver registrada
         using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = $"""
@@ -60,7 +72,7 @@ public class TenantProvisionerService(IConfiguration configuration)
             cmd.ExecuteNonQuery();
         }
 
-        // 3. Adiciona colunas novas se não existirem (incremento sem recriar tabelas)
+        // Adiciona DestinationAccountId se não existir
         AddColumnIfNotExists(conn, "Transactions", "DestinationAccountId", "TEXT NULL");
     }
 
@@ -70,10 +82,8 @@ public class TenantProvisionerService(IConfiguration configuration)
         checkCmd.CommandText = $"PRAGMA table_info({table})";
         var columns = new List<string>();
         using (var reader = checkCmd.ExecuteReader())
-        {
             while (reader.Read())
-                columns.Add(reader.GetString(1)); // column name
-        }
+                columns.Add(reader.GetString(1));
 
         if (!columns.Contains(column))
         {

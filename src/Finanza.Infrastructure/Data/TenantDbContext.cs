@@ -32,11 +32,6 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
             builder.Property(c => c.Description)
                 .HasMaxLength(100);
 
-            builder.HasMany(c => c.Transactions)
-                .WithOne(t => t.Category)
-                .HasForeignKey(t => t.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             builder.HasIndex(c => c.Name).IsUnique();
         });
 
@@ -59,6 +54,18 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .WithMany(a => a.Transactions)
                 .HasForeignKey(t => t.AccountId)
                 .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+            builder.HasOne(t => t.DestinationAccount)
+                .WithMany(a => a.IncomingTransfers)
+                .HasForeignKey(t => t.DestinationAccountId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+            builder.HasOne(t => t.Category)
+                .WithMany(c => c.Transactions)
+                .HasForeignKey(t => t.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
         });
 

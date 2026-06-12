@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -60,14 +60,17 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   }
 
   form = this.fb.group({
-    description:     ['', [Validators.required, Validators.minLength(2)]],
-    amount:          [null as number | null, [Validators.required, Validators.min(0.01)]],
-    transactionType: ['', Validators.required],
-    categoryId:      ['', Validators.required],
-    accountId:       [null as string | null],
-    dueDate:         [null as Date | null, Validators.required],
-    paymentDate:     [null as Date | null],
+    description:          ['', [Validators.required, Validators.minLength(2)]],
+    amount:               [null as number | null, [Validators.required, Validators.min(0.01)]],
+    transactionType:      ['', Validators.required],
+    categoryId:           [null as string | null],
+    accountId:            [null as string | null],
+    destinationAccountId: [null as string | null],
+    dueDate:              [null as Date | null, Validators.required],
+    paymentDate:          [null as Date | null],
   });
+
+  isTransfer = computed(() => this.form.get('transactionType')?.value === 'Transfer');
 
   ngOnInit(): void {
     this.categoryService.getAll().subscribe(cats => {
@@ -86,13 +89,14 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
 
   private fillForm(tx: Transaction): void {
     this.form.patchValue({
-      description:     tx.description,
-      amount:          tx.amount,
-      transactionType: tx.type,
-      categoryId:      this.categories().find(c => c.name === tx.categoryName)?.id ?? '',
-      accountId:       tx.accountId ?? null,
-      dueDate:         new Date(tx.dueDate),
-      paymentDate:     tx.paymentDate ? new Date(tx.paymentDate) : null,
+      description:          tx.description,
+      amount:               tx.amount,
+      transactionType:      tx.type,
+      categoryId:           this.categories().find(c => c.name === tx.categoryName)?.id ?? null,
+      accountId:            tx.accountId ?? null,
+      destinationAccountId: tx.destinationAccountId ?? null,
+      dueDate:              new Date(tx.dueDate),
+      paymentDate:          tx.paymentDate ? new Date(tx.paymentDate) : null,
     });
   }
 
@@ -103,30 +107,32 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     const val         = this.form.value;
     const dueDate     = val.dueDate as Date;
     const paymentDate = val.paymentDate as Date | null;
+    const type        = val.transactionType as 'Revenue' | 'Expense' | 'Transfer';
 
     const save$ = this.isEdit
       ? this.transactionService.update(this.dialogData!.transaction!.id, {
-          description:     val.description!,
-          amount:          val.amount!,
-          transactionType: val.transactionType as 'Revenue' | 'Expense',
-          categoryId:      val.categoryId!,
-          accountId:       val.accountId ?? undefined,
-          dueDate:         dueDate.toISOString(),
+          description:          val.description!,
+          amount:               val.amount!,
+          transactionType:      type,
+          categoryId:           val.categoryId ?? undefined,
+          accountId:            val.accountId ?? undefined,
+          destinationAccountId: val.destinationAccountId ?? undefined,
+          dueDate:              dueDate.toISOString(),
         })
       : this.transactionService.create({
-          description:     val.description!,
-          amount:          val.amount!,
-          transactionType: val.transactionType as 'Revenue' | 'Expense',
-          categoryId:      val.categoryId!,
-          accountId:       val.accountId ?? undefined,
-          dueDate:         dueDate.toISOString(),
-          createdAt:       new Date().toISOString(),
+          description:          val.description!,
+          amount:               val.amount!,
+          transactionType:      type,
+          categoryId:           val.categoryId ?? undefined,
+          accountId:            val.accountId ?? undefined,
+          destinationAccountId: val.destinationAccountId ?? undefined,
+          dueDate:              dueDate.toISOString(),
+          createdAt:            new Date().toISOString(),
         });
 
     save$.pipe(
       switchMap(tx => {
         const alreadyPaid = this.isEdit && this.dialogData!.transaction!.status === 'Paid';
-        // Chama pay() apenas se a data de pagamento foi informada e a transação ainda não está paga
         if (paymentDate && !alreadyPaid) {
           return this.transactionService.pay(tx.id, { paymentDate: paymentDate.toISOString() });
         }

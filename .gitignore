@@ -12,7 +12,6 @@
 /src/Finanza.Domain/bin
 /src/Finanza.Domain/obj
 /src/Finanza.Infrastructure/bin
-/src/Finanza.Infrastructure/Migrations
 /src/Finanza.Infrastructure/obj
 /src/Finanza.Infrastructure/financeiro.db
 /src/Finanza.Infrastructure/Financeiro.db-shm
