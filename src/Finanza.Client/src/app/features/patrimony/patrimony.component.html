@@ -2,13 +2,13 @@
   <div class="page-header">
     <h1 class="page-title">Patrimônio</h1>
     <div class="header-actions">
-      <button mat-raised-button color="primary" (click)="openAddAsset()">
+      <button mat-flat-button color="primary" (click)="openAddAsset()">
         <mat-icon>add</mat-icon> Novo Ativo
       </button>
-      <button mat-stroked-button color="warn" (click)="openAddLiability()">
+      <button mat-stroked-button (click)="openAddLiability()">
         <mat-icon>add</mat-icon> Novo Passivo
       </button>
-      <button mat-stroked-button color="accent" (click)="takeSnapshot()" [disabled]="takingSnapshot()">
+      <button mat-stroked-button (click)="takeSnapshot()" [disabled]="takingSnapshot()">
         <mat-icon>photo_camera</mat-icon> Tirar Snapshot
       </button>
     </div>
