@@ -16,6 +16,7 @@ public class TenantMigrationStartupService(
     ILogger<TenantMigrationStartupService> logger) : IHostedService
 {
     private const string InitialMigrationId = "20260612000339_AddTransferTransaction";
+    private const string LoanMigrationId    = "20260612003013_AddLoanReceivable";
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -74,6 +75,61 @@ public class TenantMigrationStartupService(
 
         // Adiciona DestinationAccountId se não existir
         AddColumnIfNotExists(conn, "Transactions", "DestinationAccountId", "TEXT NULL");
+
+        // Migration: AddLoanReceivable
+        MarkMigrationAppliedIfTablesExist(conn, LoanMigrationId, "LoanReceivables");
+        CreateTableIfNotExists(conn, "LoanReceivables", """
+            CREATE TABLE IF NOT EXISTS "LoanReceivables" (
+                "Id"           TEXT NOT NULL CONSTRAINT "PK_LoanReceivables" PRIMARY KEY,
+                "BorrowerName" TEXT NOT NULL,
+                "TotalAmount"  TEXT NOT NULL,
+                "StartDate"    TEXT NOT NULL,
+                "DueDate"      TEXT NOT NULL,
+                "Notes"        TEXT NULL
+            )
+            """);
+        CreateTableIfNotExists(conn, "LoanInstallments", """
+            CREATE TABLE IF NOT EXISTS "LoanInstallments" (
+                "Id"               TEXT NOT NULL CONSTRAINT "PK_LoanInstallments" PRIMARY KEY,
+                "LoanReceivableId" TEXT NOT NULL,
+                "Number"           INTEGER NOT NULL,
+                "Amount"           TEXT NOT NULL,
+                "DueDate"          TEXT NOT NULL,
+                "PaidAt"           TEXT NULL,
+                CONSTRAINT "FK_LoanInstallments_LoanReceivables_LoanReceivableId"
+                    FOREIGN KEY ("LoanReceivableId") REFERENCES "LoanReceivables" ("Id") ON DELETE CASCADE
+            )
+            """);
+    }
+
+    private static void MarkMigrationAppliedIfTablesExist(System.Data.Common.DbConnection conn, string migrationId, string tableToCheck)
+    {
+        // Se a tabela já existe no banco (criada fora de migrations), marca como aplicada
+        using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = $"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{tableToCheck}'";
+        var exists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+
+        using var insertCmd = conn.CreateCommand();
+        insertCmd.CommandText = $"""
+            INSERT OR IGNORE INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('{migrationId}', '8.0.0');
+            """;
+        insertCmd.ExecuteNonQuery();
+
+        _ = exists; // tabela pode ou não existir — a migration é marcada de qualquer forma para o Migrate() não recriar
+    }
+
+    private static void CreateTableIfNotExists(System.Data.Common.DbConnection conn, string tableName, string createSql)
+    {
+        using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = $"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{tableName}'";
+        var exists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+        if (!exists)
+        {
+            using var createCmd = conn.CreateCommand();
+            createCmd.CommandText = createSql;
+            createCmd.ExecuteNonQuery();
+        }
     }
 
     private static void AddColumnIfNotExists(System.Data.Common.DbConnection conn, string table, string column, string definition)

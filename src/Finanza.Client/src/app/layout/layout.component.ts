@@ -52,6 +52,7 @@ export class LayoutComponent {
     { path: '/fire',                 label: 'FIRE',             icon: 'local_fire_department' },
     { path: '/goals',               label: 'Metas',            icon: 'flag'            },
     { path: '/investments',          label: 'Investimentos',    icon: 'show_chart'      },
+    { path: '/loans',               label: 'Empréstimos',      icon: 'handshake'       },
     { path: '/patrimony',           label: 'Patrimônio',       icon: 'account_balance' },
     { path: '/patrimony-snapshots', label: 'Histórico Patrim.', icon: 'timeline' },
     { path: '/planning',            label: 'Planejamento',     icon: 'insights' },

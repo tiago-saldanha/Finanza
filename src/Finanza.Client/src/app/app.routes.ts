@@ -99,6 +99,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'loans',
+        loadComponent: () =>
+          import('./features/loans/loans.component').then(m => m.LoansComponent),
+      },
+      {
         path: 'account',
         loadComponent: () =>
           import('./features/account/account.component').then(m => m.AccountComponent),

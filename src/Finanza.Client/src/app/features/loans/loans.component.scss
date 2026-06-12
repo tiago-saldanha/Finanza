@@ -1,0 +1,147 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  .page-title { margin-bottom: 0; }
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  .kpi-label { font-size: 12px; color: #757575; margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 700; }
+  &.kpi-green .kpi-value { color: var(--color-revenue-text, #2e7d32); }
+  &.kpi-blue  .kpi-value { color: #1565c0; }
+  &.kpi-red   .kpi-value { color: #c62828; }
+}
+
+.form-card {
+  margin-bottom: 24px;
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    .full-width { grid-column: 1 / -1; }
+  }
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: #9e9e9e;
+  .empty-icon { font-size: 56px; width: 56px; height: 56px; }
+  p { font-size: 16px; }
+}
+
+.loans-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  mat-icon {
+    font-size: 20px; width: 20px; height: 20px;
+    &.settled { color: #2e7d32; }
+    &.overdue  { color: #c62828; }
+  }
+  mat-chip { font-size: 11px; padding: 2px 8px; line-height: 18px; }
+  .chip-settled { background: #e8f5e9; color: #2e7d32; }
+  .chip-overdue { background: #ffebee; color: #c62828; }
+}
+
+.panel-desc {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  .installment-count { color: #9e9e9e; }
+}
+
+.loan-detail {
+  padding: 8px 0;
+}
+
+.loan-amounts {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  div {
+    display: flex;
+    flex-direction: column;
+    .detail-label { font-size: 11px; color: #757575; }
+    .detail-value { font-weight: 600; font-size: 15px; }
+    .text-green   { color: #2e7d32; }
+    .text-blue    { color: #1565c0; }
+  }
+}
+
+.progress-label {
+  font-size: 12px;
+  color: #757575;
+  margin: 4px 0 12px;
+}
+
+.notes-text {
+  font-size: 13px;
+  color: #616161;
+  font-style: italic;
+  margin: 8px 0;
+}
+
+.installments-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #424242;
+  margin: 16px 0 8px;
+}
+
+.installments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.installment-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #fafafa;
+  font-size: 13px;
+
+  .inst-number    { font-weight: 600; width: 28px; color: #616161; }
+  .inst-amount    { font-weight: 500; width: 100px; }
+  .inst-due       { width: 90px; color: #757575; }
+  .inst-paid-date { flex: 1; color: #2e7d32; font-size: 12px; }
+  .inst-status    { flex: 1; color: #757575; }
+  .overdue-label  { color: #c62828; font-weight: 600; }
+  button          { margin-left: auto; }
+
+  &.paid    { background: #f1f8e9; }
+  &.overdue { background: #fff8f8; }
+}
+
+.loan-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}

@@ -15,6 +15,8 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<AssetValueHistory>  AssetValueHistories { get; set; }
     public DbSet<Investment>         Investments         { get; set; }
     public DbSet<Goal>               Goals               { get; set; }
+    public DbSet<LoanReceivable>     LoanReceivables     { get; set; }
+    public DbSet<LoanInstallment>    LoanInstallments    { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -173,6 +175,38 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
             builder.HasOne(h => h.Asset)
                 .WithMany(a => a.ValueHistory)
                 .HasForeignKey(h => h.AssetId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LoanReceivable>(builder =>
+        {
+            builder.HasKey(l => l.Id);
+
+            builder.Property(l => l.BorrowerName)
+                .IsRequired()
+                .HasConversion(d => d.Value, v => new Description(v))
+                .HasMaxLength(100);
+
+            builder.Property(l => l.TotalAmount)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.Property(l => l.Notes).HasMaxLength(300);
+        });
+
+        modelBuilder.Entity<LoanInstallment>(builder =>
+        {
+            builder.HasKey(i => i.Id);
+
+            builder.Property(i => i.Amount)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.HasOne(i => i.LoanReceivable)
+                .WithMany(l => l.Installments)
+                .HasForeignKey(i => i.LoanReceivableId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
