@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { GoalService, GoalRequest } from '../../core/services/goal.service';
+import { DashboardTabsComponent } from '../../shared/dashboard-tabs/dashboard-tabs.component';
 import { Goal } from '../../core/models/goal.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { CurrencyMaskDirective } from '../../core/directives/currency-mask.directive';
@@ -24,7 +25,7 @@ import { CurrencyMaskDirective } from '../../core/directives/currency-mask.direc
     CommonModule, CurrencyPipe, DatePipe, DecimalPipe, ReactiveFormsModule,
     MatCardModule, MatButtonModule, MatIconModule, MatProgressBarModule,
     MatProgressSpinnerModule, MatSnackBarModule, MatDialogModule,
-    MatFormFieldModule, MatInputModule, MatTooltipModule, CurrencyMaskDirective,
+    MatFormFieldModule, MatInputModule, MatTooltipModule, CurrencyMaskDirective, DashboardTabsComponent,
   ],
   templateUrl: './goals.component.html',
   styleUrl:    './goals.component.scss',

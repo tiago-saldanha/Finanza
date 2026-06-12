@@ -8,6 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { FireService } from '../../core/services/fire.service';
+import { DashboardTabsComponent } from '../../shared/dashboard-tabs/dashboard-tabs.component';
 import { FireData } from '../../core/models/fire.model';
 
 @Component({
@@ -16,7 +17,7 @@ import { FireData } from '../../core/models/fire.model';
   imports: [
     CommonModule, CurrencyPipe, DecimalPipe,
     MatCardModule, MatIconModule, MatProgressBarModule,
-    MatProgressSpinnerModule, MatDividerModule, MatTooltipModule,
+    MatProgressSpinnerModule, MatDividerModule, MatTooltipModule, DashboardTabsComponent,
   ],
   templateUrl: './fire.component.html',
   styleUrl:    './fire.component.scss',

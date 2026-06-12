@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { LoanService, LoanRequest } from '../../core/services/loan.service';
+import { DashboardTabsComponent } from '../../shared/dashboard-tabs/dashboard-tabs.component';
 import { Loan, LoanInstallment, LoanSummary } from '../../core/models/loan.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { CurrencyMaskDirective } from '../../core/directives/currency-mask.directive';
@@ -28,7 +29,7 @@ import { CurrencyMaskDirective } from '../../core/directives/currency-mask.direc
     MatCardModule, MatButtonModule, MatIconModule, MatProgressBarModule,
     MatProgressSpinnerModule, MatSnackBarModule, MatDialogModule,
     MatFormFieldModule, MatInputModule, MatChipsModule, MatExpansionModule,
-    MatTooltipModule, MatDividerModule, CurrencyMaskDirective,
+    MatTooltipModule, MatDividerModule, CurrencyMaskDirective, DashboardTabsComponent,
   ],
   templateUrl: './loans.component.html',
   styleUrl:    './loans.component.scss',

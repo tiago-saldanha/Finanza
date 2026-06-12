@@ -16,6 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { BaseChartDirective } from 'ng2-charts';
+import { DashboardTabsComponent } from '../../shared/dashboard-tabs/dashboard-tabs.component';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { Chart, registerables } from 'chart.js';
 import { forkJoin } from 'rxjs';
@@ -27,6 +28,8 @@ import { InvestmentService } from '../../core/services/investment.service';
 import { LoanService } from '../../core/services/loan.service';
 import { GoalService } from '../../core/services/goal.service';
 import { PatrimonyService } from '../../core/services/patrimony.service';
+import { PatrimonySnapshotService } from '../../core/services/patrimony-snapshot.service';
+import { PlanningService } from '../../core/services/planning.service';
 
 import { Transaction } from '../../core/models/transaction.model';
 import { FinancialAccount } from '../../core/models/financial-account.model';
@@ -34,6 +37,8 @@ import { InvestmentPortfolio } from '../../core/models/investment.model';
 import { LoanSummary } from '../../core/models/loan.model';
 import { Goal } from '../../core/models/goal.model';
 import { NetWorth } from '../../core/models/patrimony.model';
+import { PatrimonySnapshot } from '../../core/models/patrimony-snapshot.model';
+import { FinancialPlanning } from '../../core/models/planning.model';
 
 Chart.register(...registerables);
 
@@ -60,6 +65,7 @@ Chart.register(...registerables);
     MatDatepickerModule,
     MatInputModule,
     BaseChartDirective,
+    DashboardTabsComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
@@ -71,8 +77,10 @@ export class DashboardComponent implements OnInit {
   private readonly investmentService    = inject(InvestmentService);
   private readonly loanService          = inject(LoanService);
   private readonly goalService          = inject(GoalService);
-  private readonly patrimonyService     = inject(PatrimonyService);
-  private readonly themeService         = inject(ThemeService);
+  private readonly patrimonyService         = inject(PatrimonyService);
+  private readonly patrimonySnapshotService = inject(PatrimonySnapshotService);
+  private readonly planningService          = inject(PlanningService);
+  private readonly themeService             = inject(ThemeService);
 
   private cssVar(name: string): string {
     return getComputedStyle(document.body).getPropertyValue(name).trim();
@@ -80,12 +88,37 @@ export class DashboardComponent implements OnInit {
 
   loading = signal(true);
 
-  transactions  = signal<Transaction[]>([]);
-  accounts      = signal<FinancialAccount[]>([]);
-  portfolio     = signal<InvestmentPortfolio | null>(null);
-  loanSummary   = signal<LoanSummary | null>(null);
-  goals         = signal<Goal[]>([]);
-  netWorth      = signal<NetWorth | null>(null);
+  transactions      = signal<Transaction[]>([]);
+  accounts          = signal<FinancialAccount[]>([]);
+  portfolio         = signal<InvestmentPortfolio | null>(null);
+  loanSummary       = signal<LoanSummary | null>(null);
+  goals             = signal<Goal[]>([]);
+  netWorth          = signal<NetWorth | null>(null);
+  snapshots         = signal<PatrimonySnapshot[]>([]);
+  planning          = signal<FinancialPlanning | null>(null);
+
+  // ---- KPI: Reserva de Emergência ----
+  emergencyFundMonths  = computed(() => this.planning()?.emergencyFundMonths ?? 0);
+  emergencyFundTarget  = computed(() => this.planning()?.emergencyFundTarget ?? 6);
+  emergencyFundPct     = computed(() =>
+    Math.min((this.emergencyFundMonths() / this.emergencyFundTarget()) * 100, 100)
+  );
+  emergencyFundColor   = computed(() => {
+    const pct = this.emergencyFundPct();
+    if (pct >= 100) return '#2e7d32';
+    if (pct >= 50)  return '#f57c00';
+    return '#c62828';
+  });
+
+  // ---- KPI: Evolução Patrimonial (%) ----
+  patrimonialEvolution = computed(() => {
+    const snaps = [...this.snapshots()].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    if (snaps.length < 2) return null;
+    const prev = snaps[snaps.length - 2].netWorth;
+    const curr = snaps[snaps.length - 1].netWorth;
+    if (prev === 0) return null;
+    return ((curr - prev) / Math.abs(prev)) * 100;
+  });
 
   // ---- Período (transações do mês) ----
   periodMode = signal<'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear' | 'all' | 'custom'>('thisMonth');
@@ -202,6 +235,7 @@ export class DashboardComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    const now = new Date();
     forkJoin({
       transactions: this.transactionService.getAll(),
       accounts:     this.accountService.getAll(),
@@ -209,6 +243,8 @@ export class DashboardComponent implements OnInit {
       loanSummary:  this.loanService.getSummary(),
       goals:        this.goalService.getAll(),
       netWorth:     this.patrimonyService.getNetWorth(),
+      snapshots:    this.patrimonySnapshotService.getAll(),
+      planning:     this.planningService.get(now.getFullYear(), now.getMonth() + 1),
     }).subscribe({
       next: (data) => {
         this.transactions.set(data.transactions);
@@ -217,6 +253,8 @@ export class DashboardComponent implements OnInit {
         this.loanSummary.set(data.loanSummary);
         this.goals.set(data.goals);
         this.netWorth.set(data.netWorth);
+        this.snapshots.set(data.snapshots);
+        this.planning.set(data.planning);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),

@@ -1,0 +1,157 @@
+<div class="page-container">
+  <app-dashboard-tabs />
+
+  <div class="page-header">
+    <h1 class="page-title">Ativos x Passivos</h1>
+    <div class="header-actions">
+      <button mat-flat-button color="primary" (click)="openAddAsset()">
+        <mat-icon>add</mat-icon> Novo Ativo
+      </button>
+      <button mat-stroked-button (click)="openAddLiability()">
+        <mat-icon>add</mat-icon> Novo Passivo
+      </button>
+      <button mat-stroked-button (click)="takeSnapshot()" [disabled]="takingSnapshot()">
+        <mat-icon>photo_camera</mat-icon> Snapshot
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center"><mat-spinner diameter="48" /></div>
+  }
+
+  @let nw = netWorth();
+  @if (!loading() && nw) {
+
+    <!-- ── KPI Row ────────────────────────────────────────────────────── -->
+    <div class="kpi-row">
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background:#e3f2fd"><mat-icon style="color:#1565c0">trending_up</mat-icon></div>
+        <div class="kpi-body">
+          <div class="kpi-label">Total de Ativos</div>
+          <div class="kpi-value text-asset">{{ nw.totalAssets | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          <div class="kpi-sub">{{ nw.assets.length }} item(s)</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background:#ffebee"><mat-icon style="color:#b71c1c">trending_down</mat-icon></div>
+        <div class="kpi-body">
+          <div class="kpi-label">Total de Passivos</div>
+          <div class="kpi-value text-liability">{{ nw.totalLiabilities | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          <div class="kpi-sub">{{ nw.liabilities.length }} item(s)</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" [style.background]="nw.netWorth >= 0 ? '#e8f5e9' : '#ffebee'">
+          <mat-icon [style.color]="nw.netWorth >= 0 ? '#2e7d32' : '#b71c1c'">account_balance</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Patrimônio Líquido</div>
+          <div class="kpi-value" [class.text-asset]="nw.netWorth >= 0" [class.text-liability]="nw.netWorth < 0">
+            {{ nw.netWorth | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" [style.background]="debtRatio() > 50 ? '#ffebee' : '#fff3e0'">
+          <mat-icon [style.color]="debtRatio() > 50 ? '#b71c1c' : '#e65100'">balance</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Endividamento</div>
+          <div class="kpi-value" [style.color]="debtRatio() > 50 ? '#b71c1c' : debtRatio() > 25 ? '#e65100' : '#2e7d32'">
+            {{ debtRatio() | number:'1.1-1' }}%
+          </div>
+          <div class="kpi-sub">Passivos / Ativos</div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- ── Charts Row ────────────────────────────────────────────────── -->
+    @if (nw.assets.length > 0 || nw.liabilities.length > 0) {
+      <div class="charts-row">
+        @if (nw.assets.length > 0) {
+          <mat-card class="chart-card">
+            <mat-card-header><mat-card-title>Distribuição dos Ativos</mat-card-title></mat-card-header>
+            <mat-card-content>
+              <canvas baseChart [data]="assetChartData()" [options]="doughnutOptions" type="doughnut"></canvas>
+            </mat-card-content>
+          </mat-card>
+        }
+        @if (nw.liabilities.length > 0) {
+          <mat-card class="chart-card">
+            <mat-card-header><mat-card-title>Distribuição dos Passivos</mat-card-title></mat-card-header>
+            <mat-card-content>
+              <canvas baseChart [data]="liabilityChartData()" [options]="doughnutOptions" type="doughnut"></canvas>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    }
+
+    <!-- ── Two columns: Assets | Liabilities ────────────────────────── -->
+    <div class="columns">
+
+      <section class="col">
+        <h2 class="col-title"><mat-icon>savings</mat-icon> Ativos</h2>
+        @if (nw.assets.length === 0) {
+          <div class="empty-col">
+            <mat-icon>account_balance_wallet</mat-icon>
+            <p>Nenhum ativo cadastrado</p>
+          </div>
+        } @else {
+          @for (item of nw.assets; track item.id) {
+            <mat-card class="item-card asset-card">
+              <div class="item-row">
+                <mat-icon class="item-icon asset-icon">{{ assetIcon(item.type) }}</mat-icon>
+                <div class="item-info">
+                  <div class="item-name">{{ item.name }}</div>
+                  <div class="item-type">{{ assetLabels[item.type] || item.type }}</div>
+                </div>
+                <div class="item-value text-asset">
+                  {{ item.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                </div>
+                <div class="item-actions">
+                  <button mat-icon-button matTooltip="Atualizar valor" (click)="openUpdateValue(item)"><mat-icon>trending_up</mat-icon></button>
+                  <button mat-icon-button matTooltip="Editar" (click)="openEditAsset(item)"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button matTooltip="Excluir" class="del-btn" (click)="deleteAsset(item)"><mat-icon>delete_outline</mat-icon></button>
+                </div>
+              </div>
+            </mat-card>
+          }
+        }
+      </section>
+
+      <section class="col">
+        <h2 class="col-title"><mat-icon>money_off</mat-icon> Passivos</h2>
+        @if (nw.liabilities.length === 0) {
+          <div class="empty-col">
+            <mat-icon>check_circle_outline</mat-icon>
+            <p>Nenhum passivo cadastrado</p>
+          </div>
+        } @else {
+          @for (item of nw.liabilities; track item.id) {
+            <mat-card class="item-card liability-card">
+              <div class="item-row">
+                <mat-icon class="item-icon liability-icon">{{ liabilityIcon(item.type) }}</mat-icon>
+                <div class="item-info">
+                  <div class="item-name">{{ item.name }}</div>
+                  <div class="item-type">{{ liabilityLabels[item.type] || item.type }}</div>
+                </div>
+                <div class="item-value text-liability">
+                  {{ item.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                </div>
+                <div class="item-actions">
+                  <button mat-icon-button matTooltip="Editar" (click)="openEditLiability(item)"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button matTooltip="Excluir" class="del-btn" (click)="deleteLiability(item)"><mat-icon>delete_outline</mat-icon></button>
+                </div>
+              </div>
+            </mat-card>
+          }
+        }
+      </section>
+    </div>
+  }
+</div>

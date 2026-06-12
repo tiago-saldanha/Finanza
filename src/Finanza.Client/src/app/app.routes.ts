@@ -60,6 +60,16 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'cash-flow',
+        loadComponent: () =>
+          import('./features/cash-flow/cash-flow.component').then(m => m.CashFlowComponent),
+      },
+      {
+        path: 'assets-liabilities',
+        loadComponent: () =>
+          import('./features/assets-liabilities/assets-liabilities.component').then(m => m.AssetsLiabilitiesComponent),
+      },
+      {
         path: 'patrimony',
         loadComponent: () =>
           import('./features/patrimony/patrimony.component').then(m => m.PatrimonyComponent),

@@ -10,6 +10,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { PatrimonyService } from '../../core/services/patrimony.service';
+import { DashboardTabsComponent } from '../../shared/dashboard-tabs/dashboard-tabs.component';
 import { PatrimonySnapshotService } from '../../core/services/patrimony-snapshot.service';
 import {
   Asset, Liability, NetWorth,
@@ -31,7 +32,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   standalone: true,
   imports: [
     CommonModule, CurrencyPipe, MatCardModule, MatButtonModule, MatIconModule,
-    MatDividerModule, MatProgressSpinnerModule, MatTooltipModule,
+    MatDividerModule, MatProgressSpinnerModule, MatTooltipModule, DashboardTabsComponent,
     MatDialogModule, MatSnackBarModule,
   ],
   templateUrl: './patrimony.component.html',

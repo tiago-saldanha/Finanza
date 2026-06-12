@@ -30,6 +30,8 @@
     </div>
   </div>
 
+  <app-dashboard-tabs />
+
   @if (loading()) {
     <div class="loading-center"><mat-spinner diameter="48" /></div>
   } @else {
@@ -82,6 +84,38 @@
               {{ nw.netWorth | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
             </div>
             <div class="kpi-sub">Ativos: {{ nw.totalAssets | currency:'BRL':'symbol':'1.0-0':'pt-BR' }} · Passivos: {{ nw.totalLiabilities | currency:'BRL':'symbol':'1.0-0':'pt-BR' }}</div>
+          </div>
+        </mat-card>
+      }
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background:#e8f5e9"><mat-icon [style.color]="emergencyFundColor()">shield</mat-icon></div>
+        <div class="kpi-body">
+          <div class="kpi-label">Reserva de Emergência</div>
+          <div class="kpi-value" [style.color]="emergencyFundColor()">
+            {{ emergencyFundMonths() | number:'1.1-1' }} meses
+          </div>
+          <div class="kpi-sub">
+            Meta: {{ emergencyFundTarget() }} meses · {{ emergencyFundPct() | number:'1.0-0' }}% atingido
+          </div>
+          <mat-progress-bar mode="determinate" [value]="emergencyFundPct()"
+            [style.--mdc-linear-progress-active-indicator-color]="emergencyFundColor()" />
+        </div>
+      </mat-card>
+
+      @if (patrimonialEvolution(); as evo) {
+        <mat-card class="kpi-card">
+          <div class="kpi-icon" [style.background]="evo >= 0 ? '#e8f5e9' : '#ffebee'">
+            <mat-icon [style.color]="evo >= 0 ? '#2e7d32' : '#c62828'">
+              {{ evo >= 0 ? 'trending_up' : 'trending_down' }}
+            </mat-icon>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Evolução Patrimonial</div>
+            <div class="kpi-value" [class.text-revenue]="evo >= 0" [class.text-expense]="evo < 0">
+              {{ evo >= 0 ? '+' : '' }}{{ evo | number:'1.2-2' }}%
+            </div>
+            <div class="kpi-sub">vs snapshot anterior</div>
           </div>
         </mat-card>
       }

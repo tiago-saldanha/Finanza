@@ -45,18 +45,22 @@ export class LayoutComponent {
   isMobile = signal(window.innerWidth < 768);
 
   navItems: NavItem[] = [
-    { path: '/dashboard',          label: 'Dashboard',        icon: 'dashboard' },
-    { path: '/transactions',       label: 'Transações',       icon: 'receipt_long' },
-    { path: '/categories',         label: 'Categorias',       icon: 'category' },
-    { path: '/financial-accounts', label: 'Contas',           icon: 'account_balance_wallet' },
-    { path: '/fire',                 label: 'FIRE',             icon: 'local_fire_department' },
-    { path: '/goals',               label: 'Metas',            icon: 'flag'            },
-    { path: '/investments',          label: 'Investimentos',    icon: 'show_chart'      },
-    { path: '/loans',               label: 'Empréstimos',      icon: 'handshake'       },
-    { path: '/patrimony',           label: 'Patrimônio',       icon: 'account_balance' },
+    // ── Dashboards ──────────────────────────────────────
+    { path: '/dashboard',           label: 'Visão Geral',       icon: 'dashboard' },
+    { path: '/cash-flow',           label: 'Fluxo de Caixa',    icon: 'swap_vert' },
+    { path: '/patrimony',           label: 'Patrimônio',        icon: 'account_balance' },
+    { path: '/assets-liabilities',  label: 'Ativos x Passivos', icon: 'balance' },
+    { path: '/investments',         label: 'Investimentos',     icon: 'show_chart' },
+    { path: '/loans',               label: 'Empréstimos',       icon: 'handshake' },
+    { path: '/goals',               label: 'Metas',             icon: 'flag' },
+    { path: '/fire',                label: 'FIRE',              icon: 'local_fire_department' },
+    // ── Gestão ──────────────────────────────────────────
+    { path: '/transactions',        label: 'Transações',        icon: 'receipt_long' },
+    { path: '/categories',          label: 'Categorias',        icon: 'category' },
+    { path: '/financial-accounts',  label: 'Contas',            icon: 'account_balance_wallet' },
+    { path: '/planning',            label: 'Planejamento',      icon: 'insights' },
     { path: '/patrimony-snapshots', label: 'Histórico Patrim.', icon: 'timeline' },
-    { path: '/planning',            label: 'Planejamento',     icon: 'insights' },
-    { path: '/account',            label: 'Minha Conta',      icon: 'manage_accounts' },
+    { path: '/account',             label: 'Minha Conta',       icon: 'manage_accounts' },
   ];
 
   applyTheme(theme: Theme): void {

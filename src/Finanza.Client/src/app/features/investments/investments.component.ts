@@ -17,6 +17,7 @@ import { ChartData, ChartOptions } from 'chart.js';
 import { Chart, ArcElement, DoughnutController, Tooltip, Legend } from 'chart.js';
 
 import { InvestmentService, InvestmentRequest } from '../../core/services/investment.service';
+import { DashboardTabsComponent } from '../../shared/dashboard-tabs/dashboard-tabs.component';
 import {
   Investment, InvestmentPortfolio,
   INVESTMENT_TYPE_OPTIONS, INVESTMENT_TYPE_LABELS,
@@ -33,7 +34,7 @@ Chart.register(ArcElement, DoughnutController, Tooltip, Legend);
     CommonModule, CurrencyPipe, DecimalPipe, ReactiveFormsModule,
     MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule,
     MatSnackBarModule, MatDialogModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatTooltipModule, MatDividerModule,
+    MatSelectModule, MatTooltipModule, MatDividerModule, DashboardTabsComponent,
     BaseChartDirective, CurrencyMaskDirective,
   ],
   templateUrl: './investments.component.html',
