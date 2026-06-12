@@ -142,7 +142,7 @@ export class CategoryListComponent implements OnInit {
     if (saved.customEndDate) this.customEndDate.set(new Date(saved.customEndDate));
   }
 
-  private persistFilters(): void {
+  persistFilters(): void {
     this.filterState.save<CategoryFiltersState>(this.FILTER_KEY, {
       search:          this.searchCtrl.value ?? '',
       periodMode:      this.periodMode(),
