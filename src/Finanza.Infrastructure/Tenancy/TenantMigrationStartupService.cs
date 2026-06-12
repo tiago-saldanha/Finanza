@@ -76,6 +76,60 @@ public class TenantMigrationStartupService(
         // Adiciona DestinationAccountId se não existir
         AddColumnIfNotExists(conn, "Transactions", "DestinationAccountId", "TEXT NULL");
 
+        // Tabelas das fases 4-8 que podem estar faltando em bancos antigos
+        CreateTableIfNotExists(conn, "Assets", """
+            CREATE TABLE IF NOT EXISTS "Assets" (
+                "Id"    TEXT NOT NULL CONSTRAINT "PK_Assets" PRIMARY KEY,
+                "Name"  TEXT NOT NULL,
+                "Type"  INTEGER NOT NULL,
+                "Value" TEXT NOT NULL
+            )
+            """);
+        CreateTableIfNotExists(conn, "Liabilities", """
+            CREATE TABLE IF NOT EXISTS "Liabilities" (
+                "Id"    TEXT NOT NULL CONSTRAINT "PK_Liabilities" PRIMARY KEY,
+                "Name"  TEXT NOT NULL,
+                "Type"  INTEGER NOT NULL,
+                "Value" TEXT NOT NULL
+            )
+            """);
+        CreateTableIfNotExists(conn, "PatrimonySnapshots", """
+            CREATE TABLE IF NOT EXISTS "PatrimonySnapshots" (
+                "Id"               TEXT NOT NULL CONSTRAINT "PK_PatrimonySnapshots" PRIMARY KEY,
+                "Date"             TEXT NOT NULL,
+                "TotalAssets"      TEXT NOT NULL,
+                "TotalLiabilities" TEXT NOT NULL
+            )
+            """);
+        CreateTableIfNotExists(conn, "AssetValueHistories", """
+            CREATE TABLE IF NOT EXISTS "AssetValueHistories" (
+                "Id"      TEXT NOT NULL CONSTRAINT "PK_AssetValueHistories" PRIMARY KEY,
+                "AssetId" TEXT NOT NULL,
+                "Date"    TEXT NOT NULL,
+                "Value"   TEXT NOT NULL,
+                CONSTRAINT "FK_AssetValueHistories_Assets_AssetId"
+                    FOREIGN KEY ("AssetId") REFERENCES "Assets" ("Id") ON DELETE CASCADE
+            )
+            """);
+        CreateTableIfNotExists(conn, "Investments", """
+            CREATE TABLE IF NOT EXISTS "Investments" (
+                "Id"             TEXT NOT NULL CONSTRAINT "PK_Investments" PRIMARY KEY,
+                "Name"           TEXT NOT NULL,
+                "Type"           INTEGER NOT NULL,
+                "InvestedAmount" TEXT NOT NULL,
+                "CurrentValue"   TEXT NOT NULL
+            )
+            """);
+        CreateTableIfNotExists(conn, "Goals", """
+            CREATE TABLE IF NOT EXISTS "Goals" (
+                "Id"            TEXT NOT NULL CONSTRAINT "PK_Goals" PRIMARY KEY,
+                "Name"          TEXT NOT NULL,
+                "TargetAmount"  TEXT NOT NULL,
+                "CurrentAmount" TEXT NOT NULL,
+                "TargetDate"    TEXT NOT NULL
+            )
+            """);
+
         // Migration: AddLoanReceivable
         MarkMigrationAppliedIfTablesExist(conn, LoanMigrationId, "LoanReceivables");
         CreateTableIfNotExists(conn, "LoanReceivables", """
