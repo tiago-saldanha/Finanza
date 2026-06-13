@@ -141,7 +141,7 @@ export class DashboardComponent implements OnInit {
   });
 
   // ---- KPIs de transações (excluem movimentações patrimoniais vinculadas) ----
-  private isPure = (t: Transaction) => !t.assetId && !t.liabilityId && !t.loanReceivableId;
+  private isPure = (t: Transaction) => !t.assetId && !t.liabilityId && !t.loanReceivableId && !t.investmentId;
 
   totalRevenue = computed(() =>
     this.periodFiltered().filter(t => t.type === 'Revenue' && t.status === 'Paid' && this.isPure(t)).reduce((s, t) => s + t.amount, 0)

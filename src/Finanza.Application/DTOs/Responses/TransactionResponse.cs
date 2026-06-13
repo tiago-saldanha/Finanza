@@ -24,6 +24,8 @@ namespace Finanza.Application.DTOs.Responses
         public string? LiabilityName { get; private set; }
         public Guid? LoanReceivableId { get; private set; }
         public string? LoanReceivableName { get; private set; }
+        public Guid? InvestmentId { get; private set; }
+        public string? InvestmentName { get; private set; }
 
         public static TransactionResponse Create(Transaction transaction)
         {
@@ -49,6 +51,8 @@ namespace Finanza.Application.DTOs.Responses
                 LiabilityName = transaction.Liability?.Name,
                 LoanReceivableId = transaction.LoanReceivableId,
                 LoanReceivableName = transaction.LoanReceivable?.BorrowerName,
+                InvestmentId = transaction.InvestmentId,
+                InvestmentName = transaction.Investment?.Name,
             };
         }
     }

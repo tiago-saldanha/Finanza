@@ -16,6 +16,7 @@ namespace Finanza.Application.DTOs.Requests
         public Guid? AssetId { get; set; }
         public Guid? LiabilityId { get; set; }
         public Guid? LoanReceivableId { get; set; }
+        public Guid? InvestmentId { get; set; }
 
         public Transaction ToEntity()
         {
@@ -30,7 +31,8 @@ namespace Finanza.Application.DTOs.Requests
                 DestinationAccountId,
                 AssetId,
                 LiabilityId,
-                LoanReceivableId
+                LoanReceivableId,
+                InvestmentId
             );
         }
 

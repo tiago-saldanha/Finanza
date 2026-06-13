@@ -182,6 +182,7 @@ public class TenantMigrationStartupService(
         AddColumnIfNotExists(conn, "Transactions", "AssetId",          "TEXT NULL");
         AddColumnIfNotExists(conn, "Transactions", "LiabilityId",      "TEXT NULL");
         AddColumnIfNotExists(conn, "Transactions", "LoanReceivableId", "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions", "InvestmentId",     "TEXT NULL");
     }
 
     private static void MarkMigrationAppliedIfTablesExist(System.Data.Common.DbConnection conn, string migrationId, string tableToCheck)

@@ -95,10 +95,11 @@
     <div class="link-section full-width">
       <div class="link-label">Vínculo patrimonial <span class="optional">(opcional)</span></div>
       <div class="link-chips">
-        <button type="button" [class.active]="linkType() === 'none'"      (click)="setLinkType('none')">Nenhum</button>
-        <button type="button" [class.active]="linkType() === 'asset'"     (click)="setLinkType('asset')">Ativo</button>
-        <button type="button" [class.active]="linkType() === 'liability'" (click)="setLinkType('liability')">Passivo</button>
-        <button type="button" [class.active]="linkType() === 'loan'"      (click)="setLinkType('loan')">Empréstimo concedido</button>
+        <button type="button" [class.active]="linkType() === 'none'"       (click)="setLinkType('none')">Nenhum</button>
+        <button type="button" [class.active]="linkType() === 'asset'"      (click)="setLinkType('asset')">Ativo</button>
+        <button type="button" [class.active]="linkType() === 'liability'"  (click)="setLinkType('liability')">Passivo</button>
+        <button type="button" [class.active]="linkType() === 'loan'"       (click)="setLinkType('loan')">Empréstimo concedido</button>
+        <button type="button" [class.active]="linkType() === 'investment'" (click)="setLinkType('investment')">Investimento</button>
       </div>
 
       @if (linkType() === 'asset') {
@@ -137,6 +138,19 @@
             }
           </mat-select>
           <mat-hint>Este recebimento abate o saldo do empréstimo</mat-hint>
+        </mat-form-field>
+      }
+
+      @if (linkType() === 'investment') {
+        <mat-form-field appearance="outline" class="full-width link-field">
+          <mat-label>Investimento vinculado</mat-label>
+          <mat-select formControlName="investmentId">
+            <mat-option [value]="null">Selecione...</mat-option>
+            @for (inv of investments(); track inv.id) {
+              <mat-option [value]="inv.id">{{ inv.name }} — {{ inv.currentValue | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Esta transação representa aporte ou resgate neste investimento</mat-hint>
         </mat-form-field>
       }
     </div>

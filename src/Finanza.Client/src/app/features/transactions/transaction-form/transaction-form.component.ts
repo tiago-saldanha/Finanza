@@ -19,7 +19,7 @@ import { LoanService } from '../../../core/services/loan.service';
 import { Transaction } from '../../../core/models/transaction.model';
 import { Category } from '../../../core/models/category.model';
 import { FinancialAccount } from '../../../core/models/financial-account.model';
-import { Asset, Liability } from '../../../core/models/patrimony.model';
+import { Asset, Investment, Liability } from '../../../core/models/patrimony.model';
 import { Loan } from '../../../core/models/loan.model';
 import { CurrencyMaskDirective } from '../../../core/directives/currency-mask.directive';
 
@@ -57,12 +57,13 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   private readonly dialogData = inject<TransactionFormData>(MAT_DIALOG_DATA, { optional: true });
   private readonly destroy$ = new Subject<void>();
 
-  categories = signal<Category[]>([]);
-  accounts   = signal<FinancialAccount[]>([]);
-  assets     = signal<Asset[]>([]);
+  categories  = signal<Category[]>([]);
+  accounts    = signal<FinancialAccount[]>([]);
+  assets      = signal<Asset[]>([]);
   liabilities = signal<Liability[]>([]);
-  loans      = signal<Loan[]>([]);
-  saving     = signal(false);
+  investments = signal<Investment[]>([]);
+  loans       = signal<Loan[]>([]);
+  saving      = signal(false);
 
   get isEdit(): boolean {
     return !!this.dialogData?.transaction;
@@ -80,10 +81,11 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     assetId:              [null as string | null],
     liabilityId:          [null as string | null],
     loanReceivableId:     [null as string | null],
+    investmentId:         [null as string | null],
   });
 
   isTransfer = computed(() => this.form.get('transactionType')?.value === 'Transfer');
-  linkType   = signal<'none' | 'asset' | 'liability' | 'loan'>('none');
+  linkType   = signal<'none' | 'asset' | 'liability' | 'loan' | 'investment'>('none');
 
   ngOnInit(): void {
     this.categoryService.getAll().subscribe(cats => this.categories.set(cats));
@@ -91,6 +93,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     this.patrimonyService.getNetWorth().subscribe(nw => {
       this.assets.set(nw.assets);
       this.liabilities.set(nw.liabilities);
+      this.investments.set(nw.investments);
     });
     this.loanService.getAll().subscribe(loans => {
       this.loans.set(loans.filter(l => !l.isSettled));
@@ -98,9 +101,9 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     });
   }
 
-  setLinkType(type: 'none' | 'asset' | 'liability' | 'loan'): void {
+  setLinkType(type: 'none' | 'asset' | 'liability' | 'loan' | 'investment'): void {
     this.linkType.set(type);
-    this.form.patchValue({ assetId: null, liabilityId: null, loanReceivableId: null });
+    this.form.patchValue({ assetId: null, liabilityId: null, loanReceivableId: null, investmentId: null });
   }
 
   ngOnDestroy(): void {
@@ -121,10 +124,12 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
       assetId:              tx.assetId ?? null,
       liabilityId:          tx.liabilityId ?? null,
       loanReceivableId:     tx.loanReceivableId ?? null,
+      investmentId:         tx.investmentId ?? null,
     });
-    if (tx.assetId)          this.linkType.set('asset');
-    else if (tx.liabilityId) this.linkType.set('liability');
+    if (tx.assetId)               this.linkType.set('asset');
+    else if (tx.liabilityId)      this.linkType.set('liability');
     else if (tx.loanReceivableId) this.linkType.set('loan');
+    else if (tx.investmentId)     this.linkType.set('investment');
   }
 
   save(): void {
@@ -148,6 +153,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
           assetId:              val.assetId ?? undefined,
           liabilityId:          val.liabilityId ?? undefined,
           loanReceivableId:     val.loanReceivableId ?? undefined,
+          investmentId:         val.investmentId ?? undefined,
         })
       : this.transactionService.create({
           description:          val.description!,
@@ -161,6 +167,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
           assetId:              val.assetId ?? undefined,
           liabilityId:          val.liabilityId ?? undefined,
           loanReceivableId:     val.loanReceivableId ?? undefined,
+          investmentId:         val.investmentId ?? undefined,
         });
 
     save$.pipe(

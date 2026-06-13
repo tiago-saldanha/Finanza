@@ -88,6 +88,12 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .HasForeignKey(t => t.LoanReceivableId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .IsRequired(false);
+
+            builder.HasOne(t => t.Investment)
+                .WithMany()
+                .HasForeignKey(t => t.InvestmentId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
         });
 
         modelBuilder.Entity<Account>(builder =>

@@ -22,6 +22,8 @@ export interface Transaction {
   liabilityName?: string;
   loanReceivableId?: string;
   loanReceivableName?: string;
+  investmentId?: string;
+  investmentName?: string;
 }
 
 export interface CreateTransactionRequest {
@@ -36,6 +38,7 @@ export interface CreateTransactionRequest {
   assetId?: string;
   liabilityId?: string;
   loanReceivableId?: string;
+  investmentId?: string;
 }
 
 export interface PayTransactionRequest {
@@ -53,6 +56,7 @@ export interface UpdateTransactionRequest {
   assetId?: string;
   liabilityId?: string;
   loanReceivableId?: string;
+  investmentId?: string;
 }
 
 export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {
