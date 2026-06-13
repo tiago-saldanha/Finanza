@@ -6,47 +6,46 @@ O Dashboard é a tela inicial do Finanza após o login. Apresenta uma visão con
 
 ---
 
-## Filtro de período
+## Filtro de Período
 
-O seletor de **Período** no canto superior direito afeta os KPIs e gráficos de transações:
-
-| Opção | Intervalo |
-|---|---|
-| Este mês | Do dia 1 até o último dia do mês atual |
-| Mês passado | Mês anterior completo |
-| Últimos 30 dias | Últimos 30 dias corridos |
-| Este ano | Do dia 1/1 até 31/12 do ano atual |
-| Tudo | Sem filtro de data |
+Seletor no canto superior direito — afeta os KPIs e gráficos de transações:
+- Este mês
+- Mês passado
+- Últimos 30 dias
+- Este ano
+- Tudo (sem filtro de data)
 
 ---
 
-## Linha 1 — KPIs principais
+## Linha 1 — KPIs Principais
 
-| Card | Fonte dos dados |
+| KPI | Cálculo |
 |---|---|
-| **Saldo nas Contas** | Soma de `currentBalance` de todas as contas |
-| **Receitas** | Soma das receitas **pagas** no período |
-| **Despesas** | Soma das despesas **pagas** no período |
+| **Saldo das Contas** | Σ saldo atual de todas as contas |
+| **Receitas** | Σ receitas **pagas** no período (excluindo vinculadas ao patrimônio) |
+| **Despesas** | Σ despesas **pagas** no período (excluindo vinculadas ao patrimônio) |
 | **Economia** | Receitas − Despesas no período |
-| **Patrimônio Líquido** | Total de Ativos − Total de Passivos (módulo Patrimônio) |
-| **Atenção** | Aparece somente quando há pendentes ou transações em atraso |
+| **Patrimônio Líquido** | Ativos + Investimentos − Passivos |
+| **Alerta** | Aparece apenas com transações pendentes ou itens vencidos |
+
+> Transações vinculadas a ativos, passivos, empréstimos a receber ou investimentos são excluídas dos KPIs de receita/despesa. Apenas transações "puras" do orçamento são contabilizadas.
 
 ---
 
-## Linha 2 — Módulos
+## Linha 2 — Cards de Módulos
 
-### Investimentos
-- Total investido, valor atual e retorno percentual
+**Card Investimentos:**
+- Total investido, valor atual, retorno percentual
 - Link rápido para `/investments`
 
-### Empréstimos
-- Total emprestado, total recebido e saldo a receber
-- Alerta vermelho se houver parcelas em atraso
+**Card Empréstimos:**
+- Total emprestado, total recebido, saldo a receber
+- Alerta vermelho se há parcelas vencidas
 - Link rápido para `/loans`
 
-### Metas
-- Top 3 metas ativas com maior progresso
-- Barra de progresso colorida por faixa
+**Card Metas:**
+- Top 3 metas ativas por progresso
+- Barra de progresso colorida (Azul ≥ 60%, Laranja ≥ 30%, Vermelho < 30%, Verde = 100%)
 - Contagem de metas concluídas
 - Link rápido para `/goals`
 
@@ -54,17 +53,17 @@ O seletor de **Período** no canto superior direito afeta os KPIs e gráficos de
 
 ## Linha 3 — Gráficos
 
-### Despesas por Categoria
-Gráfico de rosca (doughnut) com a distribuição das despesas **pagas** no período por categoria. Tooltip exibe valor e percentual.
+**Despesas por Categoria:**
+Gráfico de rosca com despesas **pagas** no período por categoria (somente transações puras de orçamento). Tooltip exibe valor e percentual.
 
-### Saldo por Conta
-Gráfico de barras horizontais com o saldo atual de cada conta cadastrada (até 8 contas). Barras verdes = saldo positivo; vermelhas = saldo negativo.
+**Saldo por Conta:**
+Gráfico de barras horizontal com o saldo atual de cada conta (até 8 contas). Barras verdes = positivo; vermelhas = negativo.
 
 ---
 
 ## Linha 4 — Transações Recentes
 
-Lista das 6 transações mais recentes no período selecionado (ordenadas por data de vencimento decrescente).
+6 transações mais recentes no período selecionado (ordenadas por data de vencimento decrescente).
 
 Cada linha exibe:
 - Ícone colorido por tipo (↑ receita / ↓ despesa / ⇄ transferência)

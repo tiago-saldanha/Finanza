@@ -2,86 +2,107 @@
 
 ## Visão geral
 
-O módulo de patrimônio registra todos os bens (ativos) e dívidas (passivos) para calcular o **patrimônio líquido** (net worth). Inclui histórico de snapshots para acompanhar a evolução ao longo do tempo.
+O módulo de patrimônio consolida todos os bens (ativos), investimentos e dívidas (passivos) para calcular o **Patrimônio Líquido**. Inclui histórico de snapshots para acompanhar a evolução ao longo do tempo.
+
+---
+
+## Fórmula do Patrimônio Líquido
+
+```
+Patrimônio Líquido = Ativos + Investimentos − Passivos
+```
+
+Os investimentos cadastrados no módulo de Investimentos integram diretamente o cálculo — não é necessário duplicá-los como ativos.
+
+Para passivos com parcelas, o valor considerado no cálculo é o **saldo devedor** (valor total − total já pago), não o valor original.
 
 ---
 
 ## Ativos
 
-Bens que você possui e que têm valor monetário.
+Bens com valor monetário.
 
-### Tipos de ativo
+**Tipos:**
 
-| Tipo | Exemplos |
+| Valor | Tipo |
 |---|---|
-| **Conta Bancária** | Saldo em contas não controladas pelo Finanza |
-| **Veículo** | Carro, moto, caminhão |
-| **Imóvel** | Casa, apartamento, terreno |
-| **Investimento** | Portfólio externo, previdência privada |
-| **Outro** | Obras de arte, joias, outros bens |
+| 0 | Conta Bancária |
+| 1 | Veículo |
+| 2 | Imóvel |
+| 3 | Investimento (uso alternativo, sem módulo próprio) |
+| 4 | Outro |
 
-### Campos de ativo
+**Campos:** Nome, Tipo, Valor (todos obrigatórios)
 
-| Campo | Obrigatório | Descrição |
-|---|---|---|
-| Nome | Sim | Identificação do bem |
-| Tipo | Sim | Tipo do ativo |
-| Valor | Sim | Valor atual estimado (R$) |
-
-### Histórico de valor
-
-Cada ativo mantém um histórico de atualizações de valor. Para registrar uma nova avaliação:
-1. Clique em **Atualizar Valor** no card do ativo
-2. Informe o novo valor e a data
-3. O histórico fica disponível para consulta
+**Histórico de Valor:** Cada ativo mantém um histórico de atualizações. Clique em "Atualizar Valor" → informe o novo valor e a data.
 
 ---
 
 ## Passivos
 
-Dívidas e obrigações financeiras.
+Obrigações financeiras.
 
-### Tipos de passivo
+**Tipos:**
 
-| Tipo | Exemplos |
+| Valor | Tipo |
 |---|---|
-| **Financiamento** | Financiamento de imóvel, veículo |
-| **Empréstimo** | Empréstimo bancário, pessoal |
-| **Cartão de Crédito** | Fatura total do cartão |
-| **Outro** | Outras dívidas |
+| 0 | Financiamento |
+| 1 | Empréstimo |
+| 2 | Cartão de Crédito |
+| 3 | Outro |
 
-### Campos de passivo
+**Campos:**
 
 | Campo | Obrigatório | Descrição |
 |---|---|---|
-| Nome | Sim | Identificação da dívida |
-| Tipo | Sim | Tipo do passivo |
-| Valor | Sim | Saldo devedor atual (R$) |
+| Nome | ✓ | |
+| Tipo | ✓ | |
+| Valor | ✓ | Valor total da dívida |
+| Data de Início | — | Início do contrato |
+| Data de Vencimento | — | Vencimento final |
+| Observações | — | Máximo 300 caracteres |
+| Nº de Parcelas | — | Gera parcelas automaticamente |
+
+### Parcelas de Passivos
+
+Ao informar um número de parcelas, o sistema gera automaticamente parcelas com valores iguais (Valor ÷ Nº Parcelas) e datas de vencimento mensais a partir da data de início.
+
+**Status de parcela:**
+- ⬜ Pendente — não paga, dentro do prazo
+- ✅ Pago — quitada
+- 🔴 Vencida — não paga após o vencimento
+
+**Saldo Devedor:** `Valor Total − Σ Parcelas Pagas`
+
+O saldo devedor é o valor utilizado no cálculo do Patrimônio Líquido, refletindo o que ainda efetivamente se deve.
 
 ---
 
-## Patrimônio Líquido
+## Vínculo Transação → Passivo
 
-```
-Patrimônio Líquido = Total de Ativos − Total de Passivos
-```
+Pagamentos de parcelas podem ser registrados como transações do tipo **Despesa** vinculadas ao passivo correspondente. O vínculo exclui a transação dos KPIs orçamentários, pois o pagamento de dívida não é uma despesa do orçamento corrente.
 
-O resultado é exibido na tela de Patrimônio e no **Dashboard**.
+---
+
+## Tela de Patrimônio
+
+A tela exibe um **banner com 4 cards**:
+
+| Card | Valor |
+|---|---|
+| Patrimônio Líquido | Ativos + Investimentos − Passivos |
+| Ativos | Σ valor de todos os ativos |
+| Investimentos | Σ valor atual de todos os investimentos |
+| Passivos | Σ saldo devedor de todos os passivos |
+
+Abaixo, layout em 3 colunas: **Ativos · Investimentos · Passivos**
 
 ---
 
 ## Histórico de Patrimônio (Snapshots)
 
-Acesse **Histórico Patrim.** no menu lateral para ver a evolução do patrimônio ao longo do tempo.
+Acesse **Histórico Patrimonial** na barra lateral para visualizar a evolução ao longo do tempo.
 
-### Criar um snapshot
-
-1. Acesse **Histórico Patrim.**
-2. Clique em **Registrar Snapshot Atual**
-3. O sistema salva a fotografia do patrimônio naquele momento (Total de Ativos, Total de Passivos e Patrimônio Líquido)
-
-### Gráfico de evolução
-
-O gráfico de linha exibe a variação do patrimônio líquido ao longo de todos os snapshots registrados.
-
-> **Dica:** Registre um snapshot mensalmente para ter uma visão clara da evolução do seu patrimônio ao longo do ano.
+- Clique em **Registrar Snapshot Atual** para capturar o estado atual
+- Gráfico de linha mostra a variação do patrimônio líquido entre os snapshots
+- **Dica:** registre um snapshot mensal para ter uma visão clara da evolução anual

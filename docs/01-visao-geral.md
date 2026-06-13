@@ -46,10 +46,11 @@ src/
 - `Mapper/` — mapeamento entre DTOs e entidades de domínio
 
 **Infrastructure** — implementações concretas.
-- `Data/TenantDbContext.cs` — contexto EF Core com isolamento por tenant
+- `Data/TenantDbContext.cs` — contexto EF Core com isolamento por tenant; usa `ApplyConfigurationsFromAssembly` para registrar todas as configurações automaticamente
+- `Data/Configurations/` — classes `IEntityTypeConfiguration<T>` com Fluent API (uma por entidade)
 - `Repositories/` — implementações dos repositórios
 - `Tenancy/` — provisionamento e migração automática de bancos de tenant
-- `Migrations/` — migrações EF Core
+- `Migrations/` — migration única `InitialCreate` que cria todas as tabelas do schema completo
 
 **API** — ponto de entrada HTTP.
 - `Endpoints/` — grupos de endpoints por feature
@@ -66,7 +67,13 @@ src/Finanza.Infrastructure/Tenants/user_{userId}.db
 
 O banco principal (`app.db`) armazena apenas os dados de usuários (autenticação). Todos os dados financeiros ficam no banco do tenant.
 
-Na inicialização da aplicação, o `TenantMigrationStartupService` percorre todos os bancos existentes e aplica migrações incrementais sem perda de dados.
+### Ciclo de vida dos bancos de tenant
+
+| Situação | Mecanismo |
+|---|---|
+| Novo usuário registrado | `TenantProvisionerService.ProvisionTenant()` → `context.Database.Migrate()` cria todas as tabelas via `InitialCreate` |
+| Banco existente no startup | `TenantMigrationStartupService` aplica schema incremental via SQL e registra a migration `InitialCreate` no histórico do EF |
+| Banco de identidade (`app.db`) | `AppDbContext.Database.EnsureCreated()` no startup da API |
 
 ---
 

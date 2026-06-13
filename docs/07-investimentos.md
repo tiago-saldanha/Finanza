@@ -2,19 +2,19 @@
 
 ## Visão geral
 
-O módulo de investimentos permite registrar a carteira de investimentos, acompanhar o valor atual e calcular o retorno sobre o capital investido.
+O módulo de investimentos permite registrar a carteira de investimentos, acompanhar o valor atual e calcular o retorno sobre o capital investido. Os investimentos também integram o cálculo do **Patrimônio Líquido** — são somados aos ativos e deduzidos dos passivos.
 
 ---
 
-## Tipos de investimento
+## Tipos de Investimento
 
-| Tipo | Descrição |
+| Valor | Tipo |
 |---|---|
-| **Renda Fixa** | CDB, LCI, LCA, Tesouro Direto, poupança |
-| **Ações** | Ações de empresas na bolsa de valores |
-| **FII** | Fundos de Investimento Imobiliário |
-| **Cripto** | Criptomoedas (Bitcoin, Ethereum, etc.) |
-| **Outros** | Qualquer outro tipo de investimento |
+| 0 | Renda Fixa (CDB, LCI, LCA, Tesouro Direto, poupança) |
+| 1 | Ações |
+| 2 | Fundos Imobiliários (FII) |
+| 3 | Criptomoedas |
+| 4 | Outros |
 
 ---
 
@@ -22,52 +22,66 @@ O módulo de investimentos permite registrar a carteira de investimentos, acompa
 
 | Campo | Obrigatório | Descrição |
 |---|---|---|
-| Nome | Sim | Identificação do investimento (ex: "PETR4", "Bitcoin", "CDB Nubank") |
-| Tipo | Sim | Tipo de ativo (tabela acima) |
-| Valor Investido | Sim | Quanto foi aportado no total (R$) |
-| Valor Atual | Sim | Valor de mercado atual (R$) |
-
-> O **Valor Atual** deve ser atualizado manualmente sempre que desejar refletir a cotação atual do ativo.
+| Nome | ✓ | Identificação do investimento |
+| Tipo | ✓ | Categoria do ativo |
+| Valor Investido | ✓ | Total aportado em R$ |
+| Valor Atual | ✓ | Valor de mercado atual — atualizado manualmente |
 
 ---
 
-## Como usar
+## Operações
 
-### Cadastrar um investimento
-
-1. Acesse **Investimentos** no menu lateral
-2. Clique em **Novo Investimento**
-3. Preencha os campos
-4. Clique em **Salvar**
-
-### Editar / atualizar valor
-
-Clique no ícone ✏️ no item da lista → atualize o **Valor Atual** → **Salvar**.
-
-### Excluir um investimento
-
-Clique no ícone 🗑️ → confirmação obrigatória.
+- Criar, editar (inclusive atualizar valor atual), excluir
 
 ---
 
-## KPIs do portfólio
+## KPIs da Carteira
 
-| Indicador | Cálculo |
+| KPI | Cálculo |
 |---|---|
-| **Total Investido** | Soma de todos os valores investidos |
-| **Valor Atual** | Soma de todos os valores atuais |
-| **Retorno Total** | Valor Atual − Total Investido |
-| **Retorno (%)** | (Retorno Total / Total Investido) × 100 |
+| Total Investido | Σ de todos os valores investidos |
+| Valor Atual | Σ de todos os valores atuais |
+| Retorno Total | Valor Atual − Total Investido |
+| Retorno (%) | (Retorno Total ÷ Total Investido) × 100 |
 
 ---
 
-## Gráfico de alocação
+## Gráfico de Alocação
 
-O gráfico de rosca (doughnut) exibe a distribuição percentual do portfólio por tipo de ativo (Renda Fixa, Ações, FII, Cripto, Outros).
+Gráfico de rosca mostrando a distribuição da carteira por tipo de ativo (Renda Fixa, Ações, FII, Cripto, Outros).
 
 ---
 
-## Integração com outros módulos
+## Vínculo com Transações
 
-- Os valores do portfólio são exibidos no **Dashboard** no card de Investimentos
-- Para registrar um investimento como **ativo patrimonial** (ex: imóvel, veículo), use o módulo **Patrimônio → Ativos** com o tipo `Investment`
+Aportes e resgates de investimentos podem ser registrados como transações do tipo **Despesa** ou **Receita** com vínculo ao investimento correspondente.
+
+**Por que usar o vínculo:**
+- O aporte sai da conta bancária (despesa) mas não é uma despesa do orçamento mensal
+- O vínculo exclui essa transação dos KPIs orçamentários (receita/despesa do Dashboard e Planejamento)
+- O histórico financeiro fica completo e rastreável
+
+**Como vincular:**
+1. Ao criar ou editar uma transação, selecione o chip **Investimento** no campo de vínculo patrimonial
+2. Escolha o investimento na lista
+3. Salve — a transação afeta o saldo da conta mas não os indicadores de orçamento
+
+---
+
+## Integração com Patrimônio Líquido
+
+```
+Patrimônio Líquido = Ativos + Investimentos − Passivos
+```
+
+O valor atual de cada investimento é somado diretamente ao patrimônio líquido exibido na tela de Patrimônio e no Dashboard.
+
+---
+
+## Integração com Dashboard
+
+O card de Investimentos no Dashboard exibe:
+- Total investido
+- Valor atual
+- Retorno percentual
+- Link rápido para `/investments`

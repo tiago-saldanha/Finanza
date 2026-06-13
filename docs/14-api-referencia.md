@@ -3,55 +3,54 @@
 ## Base URL
 
 ```
-https://localhost:{porta}/api
+https://localhost:{port}/api
 ```
 
-Todas as rotas (exceto `/auth/register`, `/auth/login`, `/auth/forgot-password`, `/auth/reset-password`) exigem o header:
-
+Todas as rotas exceto auth (register, login, forgot-password, reset-password) requerem:
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 ---
 
-## Autenticação — `/api/auth`
+## Autenticação (`/api/auth`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `POST` | `/register` | Registrar novo usuário |
-| `POST` | `/login` | Autenticar e obter token JWT |
-| `PUT` | `/change-password` | Alterar senha (autenticado) |
-| `POST` | `/forgot-password` | Solicitar e-mail de recuperação |
-| `POST` | `/reset-password` | Redefinir senha com token do e-mail |
+| POST | `/register` | Cadastrar novo usuário |
+| POST | `/login` | Autenticar e obter JWT |
+| PUT | `/change-password` | Alterar senha (autenticado) |
+| POST | `/forgot-password` | Solicitar e-mail de recuperação |
+| POST | `/reset-password` | Redefinir senha com token do e-mail |
 
 ---
 
-## Conta do usuário — `/api/account`
+## Conta do Usuário (`/api/account`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/export` | Exportar dados do usuário (JSON) |
-| `DELETE` | `/` | Excluir conta e todos os dados |
+| GET | `/export` | Exportar dados do usuário (JSON) |
+| DELETE | `/` | Excluir conta e todos os dados |
 
 ---
 
-## Transações — `/api/transactions`
+## Transações (`/api/transactions`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/all` | Listar todas as transações |
-| `GET` | `/{id}` | Buscar transação por ID |
-| `GET` | `/search` | Buscar com filtros (search, status, type, startDate, endDate) |
-| `GET` | `/status/{status}` | Filtrar por status |
-| `GET` | `/type/{type}` | Filtrar por tipo |
-| `POST` | `/` | Criar nova transação |
-| `PUT` | `/{id}` | Editar transação |
-| `PUT` | `/pay/{id}` | Marcar como paga (body: `{ paymentDate }`) |
-| `PUT` | `/reopen/{id}` | Reabrir (volta para Pendente) |
-| `PUT` | `/cancel/{id}` | Cancelar transação |
-| `DELETE` | `/remove/{id}` | Excluir transação |
+| GET | `/all` | Listar todas |
+| GET | `/{id}` | Buscar por ID |
+| GET | `/search` | Buscar com filtros (search, status, type, startDate, endDate) |
+| GET | `/status/{status}` | Filtrar por status |
+| GET | `/type/{type}` | Filtrar por tipo |
+| POST | `/` | Criar |
+| PUT | `/{id}` | Editar (Pendente ou Pago) |
+| PUT | `/pay/{id}` | Marcar como pago |
+| PUT | `/reopen/{id}` | Reabrir para Pendente |
+| PUT | `/cancel/{id}` | Cancelar (Pendente ou Pago) |
+| DELETE | `/remove/{id}` | Excluir |
 
-### Body — Criar/Editar transação
+**Body (Criar/Editar):**
 ```json
 {
   "description": "string",
@@ -60,101 +59,96 @@ Authorization: Bearer <jwt_token>
   "transactionType": "Revenue | Expense | Transfer",
   "categoryId": "guid | null",
   "accountId": "guid",
-  "destinationAccountId": "guid | null"
+  "destinationAccountId": "guid | null",
+  "assetId": "guid | null",
+  "liabilityId": "guid | null",
+  "loanReceivableId": "guid | null",
+  "investmentId": "guid | null"
 }
 ```
 
----
+> Apenas um dos campos de vínculo patrimonial (`assetId`, `liabilityId`, `loanReceivableId`, `investmentId`) deve ser preenchido por vez.
 
-## Categorias — `/api/categories`
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/all` | Listar todas as categorias |
-| `GET` | `/{id}` | Buscar por ID |
-| `POST` | `/` | Criar categoria |
-| `PUT` | `/{id}` | Editar categoria |
-
-### Body
-```json
-{ "name": "string", "description": "string | null" }
-```
+**Body (Marcar como Pago):** `{ "paymentDate": "2026-06-15T00:00:00" }`
 
 ---
 
-## Contas Financeiras — `/api/financial-accounts`
+## Categorias (`/api/categories`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/all` | Listar todas as contas |
-| `GET` | `/{id}` | Buscar por ID |
-| `POST` | `/` | Criar conta |
-| `PUT` | `/{id}` | Editar conta |
-| `DELETE` | `/{id}` | Excluir conta |
+| GET | `/all` | Listar todas |
+| GET | `/{id}` | Buscar por ID |
+| POST | `/` | Criar |
+| PUT | `/{id}` | Editar |
 
-### Body
-```json
-{ "name": "string", "type": 0, "initialBalance": 0.00 }
-```
-> Tipos: `0` Corrente · `1` Poupança · `2` Carteira · `3` Cartão de Crédito · `4` Investimento
+**Body:** `{ "name": "string", "description": "string | null" }`
 
 ---
 
-## Investimentos — `/api/investments`
+## Contas Financeiras (`/api/financial-accounts`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/portfolio` | Portfólio completo com KPIs e alocações |
-| `GET` | `/{id}` | Buscar investimento por ID |
-| `POST` | `/` | Criar investimento |
-| `PUT` | `/{id}` | Editar investimento |
-| `DELETE` | `/{id}` | Excluir investimento |
+| GET | `/all` | Listar todas |
+| GET | `/{id}` | Buscar por ID |
+| POST | `/` | Criar |
+| PUT | `/{id}` | Editar |
+| DELETE | `/{id}` | Excluir |
 
-### Body
-```json
-{ "name": "string", "type": 0, "investedAmount": 0.00, "currentValue": 0.00 }
-```
-> Tipos: `0` Renda Fixa · `1` Ações · `2` FII · `3` Cripto · `4` Outros
+**Body:** `{ "name": "string", "type": 0, "initialBalance": 0.00 }`
+
+**Tipos:** `0` Conta Corrente · `1` Poupança · `2` Carteira · `3` Cartão de Crédito · `4` Conta Investimento
 
 ---
 
-## Metas — `/api/goals`
+## Investimentos (`/api/investments`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/` | Listar todas as metas |
-| `GET` | `/{id}` | Buscar por ID |
-| `POST` | `/` | Criar meta |
-| `PUT` | `/{id}` | Editar meta |
-| `POST` | `/{id}/contribute` | Registrar aporte |
-| `DELETE` | `/{id}` | Excluir meta |
+| GET | `/portfolio` | Carteira completa com KPIs e alocações |
+| GET | `/{id}` | Buscar por ID |
+| POST | `/` | Criar |
+| PUT | `/{id}` | Editar |
+| DELETE | `/{id}` | Excluir |
 
-### Body — Criar/Editar
-```json
-{ "name": "string", "targetAmount": 0.00, "currentAmount": 0.00, "targetDate": "2026-12-31" }
-```
+**Body:** `{ "name": "string", "type": 0, "investedAmount": 0.00, "currentValue": 0.00 }`
 
-### Body — Aporte
-```json
-{ "amount": 0.00 }
-```
+**Tipos:** `0` Renda Fixa · `1` Ações · `2` FII · `3` Cripto · `4` Outros
 
 ---
 
-## Empréstimos — `/api/loans`
+## Metas (`/api/goals`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/` | Listar todos os empréstimos |
-| `GET` | `/summary` | Resumo consolidado (KPIs) |
-| `GET` | `/{id}` | Buscar por ID |
-| `POST` | `/` | Criar empréstimo |
-| `PUT` | `/{id}` | Editar empréstimo |
-| `DELETE` | `/{id}` | Excluir empréstimo |
-| `POST` | `/installments/{installmentId}/pay` | Marcar parcela como recebida |
-| `POST` | `/installments/{installmentId}/unpay` | Desfazer recebimento de parcela |
+| GET | `/` | Listar todas |
+| GET | `/{id}` | Buscar por ID |
+| POST | `/` | Criar |
+| PUT | `/{id}` | Editar |
+| POST | `/{id}/contribute` | Registrar contribuição |
+| DELETE | `/{id}` | Excluir |
 
-### Body — Criar/Editar
+**Body (Criar/Editar):** `{ "name": "string", "targetAmount": 0.00, "currentAmount": 0.00, "targetDate": "2026-12-31" }`
+
+**Body (Contribuição):** `{ "amount": 0.00 }`
+
+---
+
+## Empréstimos a Receber (`/api/loans`)
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/` | Listar todos |
+| GET | `/summary` | Resumo consolidado (KPIs) |
+| GET | `/{id}` | Buscar por ID |
+| POST | `/` | Criar |
+| PUT | `/{id}` | Editar |
+| DELETE | `/{id}` | Excluir |
+| POST | `/installments/{installmentId}/pay` | Marcar parcela como recebida |
+| POST | `/installments/{installmentId}/unpay` | Desfazer recebimento |
+
+**Body (Criar/Editar):**
 ```json
 {
   "borrowerName": "string",
@@ -166,94 +160,119 @@ Authorization: Bearer <jwt_token>
 }
 ```
 
-### Body — Pagar parcela
+**Body (Pagar parcela):** `{ "paidAt": "2026-06-11T00:00:00" }`
+
+---
+
+## Ativos (`/api/assets`)
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/all` | Listar todos |
+| GET | `/{id}` | Buscar por ID |
+| POST | `/` | Criar |
+| PUT | `/{id}` | Editar |
+| DELETE | `/{id}` | Excluir |
+| GET | `/{id}/value-history` | Histórico de valores |
+| POST | `/{id}/value` | Registrar novo valor |
+
+**Body (Criar/Editar):** `{ "name": "string", "type": 0, "value": 0.00 }`
+
+**Tipos:** `0` Conta Bancária · `1` Veículo · `2` Imóvel · `3` Investimento · `4` Outro
+
+**Body (Novo valor):** `{ "value": 0.00, "date": "2026-06-11" }`
+
+---
+
+## Passivos (`/api/liabilities`)
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/all` | Listar todos |
+| GET | `/{id}` | Buscar por ID |
+| POST | `/` | Criar |
+| PUT | `/{id}` | Editar |
+| DELETE | `/{id}` | Excluir |
+| POST | `/installments/{installmentId}/pay` | Marcar parcela como paga |
+| POST | `/installments/{installmentId}/unpay` | Desfazer pagamento |
+
+**Body (Criar/Editar):**
 ```json
-{ "paidAt": "2026-06-11T00:00:00" }
+{
+  "name": "string",
+  "type": 0,
+  "value": 0.00,
+  "startDate": "2026-01-01 | null",
+  "dueDate": "2026-12-31 | null",
+  "notes": "string | null",
+  "installmentCount": 0
+}
 ```
 
----
+**Tipos:** `0` Financiamento · `1` Empréstimo · `2` Cartão de Crédito · `3` Outro
 
-## Patrimônio — Ativos (`/api/assets`) e Passivos (`/api/liabilities`)
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/all` | Listar todos |
-| `GET` | `/{id}` | Buscar por ID |
-| `POST` | `/` | Criar |
-| `PUT` | `/{id}` | Editar |
-| `DELETE` | `/{id}` | Excluir |
-
-### Body — Ativo
-```json
-{ "name": "string", "type": 0, "value": 0.00 }
-```
-> Tipos ativo: `0` Conta Bancária · `1` Veículo · `2` Imóvel · `3` Investimento · `4` Outro
-
-### Body — Passivo
-```json
-{ "name": "string", "type": 0, "value": 0.00 }
-```
-> Tipos passivo: `0` Financiamento · `1` Empréstimo · `2` Cartão de Crédito · `3` Outro
+**Body (Pagar parcela):** `{ "paidAt": "2026-06-11T00:00:00" }`
 
 ---
 
-## Histórico de valor de ativo — `/api/assets`
+## Patrimônio Líquido (`/api/net-worth`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/{id}/value-history` | Histórico de valores do ativo |
-| `POST` | `/{id}/value` | Registrar novo valor |
+| GET | `/` | Total de ativos, investimentos, passivos e patrimônio líquido |
 
-### Body
+**Response:**
 ```json
-{ "value": 0.00, "date": "2026-06-11" }
+{
+  "totalAssets": 0.00,
+  "totalInvestments": 0.00,
+  "totalLiabilities": 0.00,
+  "netWorth": 0.00,
+  "assets": [],
+  "investments": [],
+  "liabilities": []
+}
 ```
 
----
-
-## Patrimônio Líquido — `/api/net-worth`
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/` | Total de ativos, passivos e patrimônio líquido |
+> `netWorth = totalAssets + totalInvestments − totalLiabilities`
 
 ---
 
-## Snapshots de Patrimônio — `/api/patrimony-snapshots`
+## Snapshots de Patrimônio (`/api/patrimony-snapshots`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/` | Listar todos os snapshots |
-| `POST` | `/` | Criar snapshot atual |
+| GET | `/` | Listar todos os snapshots |
+| POST | `/` | Registrar snapshot atual |
 
 ---
 
-## Planejamento Financeiro — `/api/financial-planning`
+## Planejamento Financeiro (`/api/financial-planning`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/` | Retorna KPIs do mês/ano informados |
+| GET | `/` | KPIs do mês/ano informado |
 
 **Query params:** `?month=6&year=2026`
 
 ---
 
-## FIRE — `/api/fire`
+## FIRE (`/api/fire`)
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/` | Retorna todos os indicadores FIRE |
+| GET | `/` | Todos os indicadores de independência financeira |
 
 ---
 
-## Códigos de resposta
+## Códigos de Resposta
 
 | Código | Significado |
 |---|---|
-| `200` | Sucesso |
-| `201` | Criado com sucesso |
-| `204` | Sem conteúdo (delete) |
-| `400` | Dados inválidos |
-| `401` | Não autenticado (token ausente ou expirado) |
-| `404` | Recurso não encontrado |
-| `500` | Erro interno do servidor |
+| 200 | Sucesso |
+| 201 | Criado com sucesso |
+| 204 | Sem conteúdo (exclusão) |
+| 400 | Dados inválidos |
+| 401 | Não autenticado (token ausente ou expirado) |
+| 404 | Recurso não encontrado |
+| 500 | Erro interno do servidor |
