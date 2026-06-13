@@ -15,8 +15,9 @@ public class TenantMigrationStartupService(
     IConfiguration configuration,
     ILogger<TenantMigrationStartupService> logger) : IHostedService
 {
-    private const string InitialMigrationId = "20260612000339_AddTransferTransaction";
-    private const string LoanMigrationId    = "20260612003013_AddLoanReceivable";
+    private const string InitialMigrationId         = "20260612000339_AddTransferTransaction";
+    private const string LoanMigrationId             = "20260612003013_AddLoanReceivable";
+    private const string PatrimonialLinksMigrationId = "20260613161609_AddLiabilityInstallmentsAndTransactionLinks";
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -154,6 +155,33 @@ public class TenantMigrationStartupService(
                     FOREIGN KEY ("LoanReceivableId") REFERENCES "LoanReceivables" ("Id") ON DELETE CASCADE
             )
             """);
+
+        // Migration: AddLiabilityInstallmentsAndTransactionLinks
+        MarkMigrationAppliedIfTablesExist(conn, PatrimonialLinksMigrationId, "LiabilityInstallments");
+
+        // Novos campos em Liabilities
+        AddColumnIfNotExists(conn, "Liabilities", "StartDate", "TEXT NULL");
+        AddColumnIfNotExists(conn, "Liabilities", "DueDate",   "TEXT NULL");
+        AddColumnIfNotExists(conn, "Liabilities", "Notes",     "TEXT NULL");
+
+        // Nova tabela LiabilityInstallments
+        CreateTableIfNotExists(conn, "LiabilityInstallments", """
+            CREATE TABLE IF NOT EXISTS "LiabilityInstallments" (
+                "Id"          TEXT NOT NULL CONSTRAINT "PK_LiabilityInstallments" PRIMARY KEY,
+                "LiabilityId" TEXT NOT NULL,
+                "Number"      INTEGER NOT NULL,
+                "Amount"      TEXT NOT NULL,
+                "DueDate"     TEXT NOT NULL,
+                "PaidAt"      TEXT NULL,
+                CONSTRAINT "FK_LiabilityInstallments_Liabilities_LiabilityId"
+                    FOREIGN KEY ("LiabilityId") REFERENCES "Liabilities" ("Id") ON DELETE CASCADE
+            )
+            """);
+
+        // Novos campos em Transactions (vínculos patrimoniais)
+        AddColumnIfNotExists(conn, "Transactions", "AssetId",          "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions", "LiabilityId",      "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions", "LoanReceivableId", "TEXT NULL");
     }
 
     private static void MarkMigrationAppliedIfTablesExist(System.Data.Common.DbConnection conn, string migrationId, string tableToCheck)
