@@ -18,8 +18,6 @@ namespace Finanza.Application.DTOs.Responses
             var revenues     = paid.Where(t => t.Type == TransactionType.Revenue).Sum(t => t.Amount.Value);
             var expenses     = paid.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount.Value);
             var transfersOut = paid.Where(t => t.Type == TransactionType.Transfer).Sum(t => t.Amount.Value);
-            var investments  = paid.Where(t => t.Type == TransactionType.Investment).Sum(t => t.Amount.Value);
-            var loans        = paid.Where(t => t.Type == TransactionType.Loan).Sum(t => t.Amount.Value);
             var transfersIn  = account.IncomingTransfers.Where(t => t.Status == TransactionStatus.Paid).Sum(t => t.Amount.Value);
 
             return new FinancialAccountResponse
@@ -28,7 +26,7 @@ namespace Finanza.Application.DTOs.Responses
                 Name = account.Name,
                 Type = account.Type.ToString(),
                 InitialBalance = account.InitialBalance,
-                CurrentBalance = account.InitialBalance.Value + revenues - expenses - transfersOut - investments - loans + transfersIn,
+                CurrentBalance = account.InitialBalance.Value + revenues - expenses - transfersOut + transfersIn,
             };
         }
     }

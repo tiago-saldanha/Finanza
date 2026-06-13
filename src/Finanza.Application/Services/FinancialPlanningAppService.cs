@@ -52,8 +52,6 @@ namespace Finanza.Application.Services
                     + paid.Where(t => t.Type == TransactionType.Revenue).Sum(t => t.Amount.Value)
                     - paid.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount.Value)
                     - paid.Where(t => t.Type == TransactionType.Transfer).Sum(t => t.Amount.Value)
-                    - paid.Where(t => t.Type == TransactionType.Investment).Sum(t => t.Amount.Value)
-                    - paid.Where(t => t.Type == TransactionType.Loan).Sum(t => t.Amount.Value)
                     + a.IncomingTransfers.Where(t => t.Status == TransactionStatus.Paid).Sum(t => t.Amount.Value);
             });
 
