@@ -183,6 +183,13 @@ public class TenantMigrationStartupService(
         AddColumnIfNotExists(conn, "Transactions", "LiabilityId",      "TEXT NULL");
         AddColumnIfNotExists(conn, "Transactions", "LoanReceivableId", "TEXT NULL");
         AddColumnIfNotExists(conn, "Transactions", "InvestmentId",     "TEXT NULL");
+
+        // Converte tipos obsoletos: Investment (3) e Loan (4) → Expense (1)
+        using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "UPDATE \"Transactions\" SET \"Type\" = 1 WHERE \"Type\" IN (3, 4)";
+            cmd.ExecuteNonQuery();
+        }
     }
 
     private static void MarkMigrationAppliedIfTablesExist(System.Data.Common.DbConnection conn, string migrationId, string tableToCheck)
