@@ -11,7 +11,10 @@ namespace Finanza.Infrastructure.Tenancy;
 /// </summary>
 public class TenantProvisionerService(IConfiguration configuration)
 {
-    private const string InitialMigrationId = "20260612000339_AddTransferTransaction";
+    private const string InitialMigrationId          = "20260612000339_AddTransferTransaction";
+    private const string LoanMigrationId             = "20260612003013_AddLoanReceivable";
+    private const string PatrimonialLinksMigrationId = "20260613161609_AddLiabilityInstallmentsAndTransactionLinks";
+    private const string InvestmentLinkMigrationId   = "20260613200000_AddInvestmentIdToTransaction";
 
     public void ProvisionTenant(string userId)
     {
@@ -30,7 +33,7 @@ public class TenantProvisionerService(IConfiguration configuration)
         if (File.Exists(dbPath))
             MigrateExistingDatabase(context);
         else
-            context.Database.Migrate();
+            context.Database.Migrate(); // banco novo: EF cria todas as tabelas e colunas
     }
 
     private static void MigrateExistingDatabase(TenantDbContext context)
@@ -50,18 +53,23 @@ public class TenantProvisionerService(IConfiguration configuration)
             cmd.ExecuteNonQuery();
         }
 
-        // 2. Marca a migration inicial como aplicada (se ainda não estiver)
-        using (var cmd = conn.CreateCommand())
+        // 2. Marca migrations como aplicadas para bancos pré-EF
+        foreach (var migId in new[] { InitialMigrationId, LoanMigrationId, PatrimonialLinksMigrationId, InvestmentLinkMigrationId })
         {
+            using var cmd = conn.CreateCommand();
             cmd.CommandText = $"""
                 INSERT OR IGNORE INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-                VALUES ('{InitialMigrationId}', '8.0.0');
+                VALUES ('{migId}', '8.0.0');
                 """;
             cmd.ExecuteNonQuery();
         }
 
         // 3. Adiciona colunas novas se não existirem (incremento sem recriar tabelas)
         AddColumnIfNotExists(conn, "Transactions", "DestinationAccountId", "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions", "AssetId",              "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions", "LiabilityId",          "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions", "LoanReceivableId",     "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions", "InvestmentId",         "TEXT NULL");
     }
 
     private static void AddColumnIfNotExists(System.Data.Common.DbConnection conn, string table, string column, string definition)

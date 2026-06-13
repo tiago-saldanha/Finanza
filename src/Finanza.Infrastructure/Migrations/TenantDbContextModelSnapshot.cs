@@ -334,6 +334,9 @@ namespace Finanza.Infrastructure.Migrations
                     b.Property<Guid?>("DestinationAccountId")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("InvestmentId")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid?>("LiabilityId")
                         .HasColumnType("TEXT");
 
@@ -367,6 +370,8 @@ namespace Finanza.Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("DestinationAccountId");
+
+                    b.HasIndex("InvestmentId");
 
                     b.HasIndex("LiabilityId");
 
@@ -430,6 +435,11 @@ namespace Finanza.Infrastructure.Migrations
                         .HasForeignKey("DestinationAccountId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Finanza.Domain.Entities.Investment", "Investment")
+                        .WithMany()
+                        .HasForeignKey("InvestmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Finanza.Domain.Entities.Liability", "Liability")
                         .WithMany()
                         .HasForeignKey("LiabilityId")
@@ -447,6 +457,8 @@ namespace Finanza.Infrastructure.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("DestinationAccount");
+
+                    b.Navigation("Investment");
 
                     b.Navigation("Liability");
 
