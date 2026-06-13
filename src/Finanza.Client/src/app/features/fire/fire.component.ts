@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,6 +27,13 @@ export class FireComponent implements OnInit {
 
   loading = signal(true);
   data    = signal<FireData | null>(null);
+
+  // Renda passiva estimada: carteira × 4% / 12 (regra SWR)
+  estimatedMonthlyPassiveIncome = computed(() => {
+    const d = this.data();
+    if (!d) return 0;
+    return (d.totalInvested * 0.04) / 12;
+  });
 
   ngOnInit(): void {
     this.service.get().subscribe({

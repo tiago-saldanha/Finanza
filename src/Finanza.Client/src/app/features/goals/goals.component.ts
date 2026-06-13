@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -42,6 +42,41 @@ export class GoalsComponent implements OnInit {
   editing       = signal<Goal | null>(null);
   showForm      = signal(false);
   contributing  = signal<Goal | null>(null);
+
+  // ── KPIs de resumo ────────────────────────────────────────────────────
+  activeGoals       = computed(() => this.goals().filter(g => !g.isCompleted));
+  completedGoals    = computed(() => this.goals().filter(g => g.isCompleted));
+  totalAccumulated  = computed(() => this.goals().reduce((s, g) => s + g.currentAmount, 0));
+  totalTarget       = computed(() => this.goals().reduce((s, g) => s + g.targetAmount, 0));
+
+  // ── Tempo estimado por meta ───────────────────────────────────────────
+  monthlyNeeded(goal: Goal): number | null {
+    if (goal.isCompleted) return null;
+    const today     = new Date();
+    const target    = new Date(goal.targetDate);
+    const diffMs    = target.getTime() - today.getTime();
+    const months    = diffMs / (1000 * 60 * 60 * 24 * 30.44);
+    if (months <= 0) return null;
+    return goal.remaining / months;
+  }
+
+  monthsRemaining(goal: Goal): number {
+    const today  = new Date();
+    const target = new Date(goal.targetDate);
+    const diffMs = target.getTime() - today.getTime();
+    return Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)));
+  }
+
+  isOnTrack(goal: Goal): boolean {
+    const today    = new Date();
+    const target   = new Date(goal.targetDate);
+    const start    = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    const totalMs  = target.getTime() - start.getTime();
+    const elapsedMs= today.getTime() - start.getTime();
+    if (totalMs <= 0) return goal.isCompleted;
+    const expectedPct = (elapsedMs / totalMs) * 100;
+    return goal.progressRate >= expectedPct;
+  }
 
   form = this.fb.group({
     name:          ['', Validators.required],

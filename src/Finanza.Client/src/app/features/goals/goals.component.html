@@ -68,6 +68,52 @@
     </mat-card>
   }
 
+  @if (!loading() && goals().length > 0) {
+    <!-- ── KPIs de resumo ──────────────────────────────────────────── -->
+    <div class="kpi-row">
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background:#e3f2fd"><mat-icon style="color:#1565c0">flag</mat-icon></div>
+        <div class="kpi-body">
+          <div class="kpi-label">Metas Ativas</div>
+          <div class="kpi-value">{{ activeGoals().length }}</div>
+          <div class="kpi-sub">de {{ goals().length }} no total</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background:#e8f5e9"><mat-icon style="color:#2e7d32">check_circle</mat-icon></div>
+        <div class="kpi-body">
+          <div class="kpi-label">Concluídas</div>
+          <div class="kpi-value text-revenue">{{ completedGoals().length }}</div>
+          <div class="kpi-sub">{{ goals().length > 0 ? ((completedGoals().length / goals().length) * 100 | number:'1.0-0') : 0 }}% do total</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background:#fff3e0"><mat-icon style="color:#e65100">savings</mat-icon></div>
+        <div class="kpi-body">
+          <div class="kpi-label">Total Acumulado</div>
+          <div class="kpi-value">{{ totalAccumulated() | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          <div class="kpi-sub">de {{ totalTarget() | currency:'BRL':'symbol':'1.0-0':'pt-BR' }} em metas</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background:#f3e5f5"><mat-icon style="color:#6a1b9a">schedule</mat-icon></div>
+        <div class="kpi-body">
+          <div class="kpi-label">Próximo Prazo</div>
+          @let next = activeGoals()[0];
+          @if (next) {
+            <div class="kpi-value">{{ monthsRemaining(next) }}m</div>
+            <div class="kpi-sub">{{ next.name }}</div>
+          } @else {
+            <div class="kpi-value">—</div>
+          }
+        </div>
+      </mat-card>
+    </div>
+  }
+
   @if (!loading()) {
     @if (goals().length === 0) {
       <mat-card class="empty-state">
@@ -95,6 +141,21 @@
             <div class="progress-label">{{ g.progressRate | number:'1.1-1' }}%
               @if (!g.isCompleted) { <span class="remaining"> — faltam {{ g.remaining | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span> }
             </div>
+            @if (!g.isCompleted) {
+              <div class="goal-meta-row">
+                <span class="goal-meta-item">
+                  <mat-icon class="meta-icon">schedule</mat-icon>
+                  {{ monthsRemaining(g) }} meses restantes
+                </span>
+                @let needed = monthlyNeeded(g);
+                @if (needed !== null) {
+                  <span class="goal-meta-item" [class.on-track]="isOnTrack(g)" [class.behind]="!isOnTrack(g)">
+                    <mat-icon class="meta-icon">{{ isOnTrack(g) ? 'trending_up' : 'warning' }}</mat-icon>
+                    {{ needed | currency:'BRL':'symbol':'1.0-0':'pt-BR' }}/mês necessário
+                  </span>
+                }
+              </div>
+            }
           </mat-card-content>
           <mat-card-actions>
             @if (!g.isCompleted) {

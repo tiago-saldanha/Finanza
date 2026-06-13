@@ -62,6 +62,15 @@
           <div class="kpi-value">{{ yearsLabel(d.estimatedYearsToFire) }}</div>
           <div class="kpi-sub">baseado na poupança atual</div>
         </mat-card>
+
+        <mat-card class="kpi-card" [class.positive]="estimatedMonthlyPassiveIncome() > 0">
+          <mat-icon class="kpi-icon">auto_awesome</mat-icon>
+          <div class="kpi-label">Renda Passiva Estimada</div>
+          <div class="kpi-value" [class.positive]="estimatedMonthlyPassiveIncome() > 0">
+            {{ estimatedMonthlyPassiveIncome() | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}/mês
+          </div>
+          <div class="kpi-sub">carteira atual × 4% ÷ 12</div>
+        </mat-card>
       </div>
 
       <!-- Regra dos 4% -->
