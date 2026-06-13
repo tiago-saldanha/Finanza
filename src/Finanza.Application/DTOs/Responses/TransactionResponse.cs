@@ -18,6 +18,12 @@ namespace Finanza.Application.DTOs.Responses
         public string? AccountName { get; private set; }
         public Guid? DestinationAccountId { get; private set; }
         public string? DestinationAccountName { get; private set; }
+        public Guid? AssetId { get; private set; }
+        public string? AssetName { get; private set; }
+        public Guid? LiabilityId { get; private set; }
+        public string? LiabilityName { get; private set; }
+        public Guid? LoanReceivableId { get; private set; }
+        public string? LoanReceivableName { get; private set; }
 
         public static TransactionResponse Create(Transaction transaction)
         {
@@ -37,6 +43,12 @@ namespace Finanza.Application.DTOs.Responses
                 AccountName = transaction.Account?.Name,
                 DestinationAccountId = transaction.DestinationAccountId,
                 DestinationAccountName = transaction.DestinationAccount?.Name,
+                AssetId = transaction.AssetId,
+                AssetName = transaction.Asset?.Name,
+                LiabilityId = transaction.LiabilityId,
+                LiabilityName = transaction.Liability?.Name,
+                LoanReceivableId = transaction.LoanReceivableId,
+                LoanReceivableName = transaction.LoanReceivable?.BorrowerName,
             };
         }
     }

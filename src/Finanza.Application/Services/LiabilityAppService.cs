@@ -24,7 +24,7 @@ namespace Finanza.Application.Services
         public async Task<LiabilityResponse> CreateAsync(LiabilityRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Name)) throw new LiabilityNameAppException();
-            var liability = Liability.Create(request.Name, request.Type, request.Value);
+            var liability = Liability.Create(request.Name, request.Type, request.Value, request.StartDate, request.DueDate, request.Notes, request.InstallmentCount);
             await repository.AddAsync(liability);
             await unitOfWork.CommitAsync();
             return LiabilityResponse.Create(liability);
@@ -34,7 +34,7 @@ namespace Finanza.Application.Services
         {
             if (string.IsNullOrWhiteSpace(request.Name)) throw new LiabilityNameAppException();
             var liability = await repository.GetByIdAsync(id);
-            liability.Update(request.Name, request.Type, request.Value);
+            liability.Update(request.Name, request.Type, request.Value, request.StartDate, request.DueDate, request.Notes);
             await repository.UpdateAsync(liability);
             await unitOfWork.CommitAsync();
             return LiabilityResponse.Create(liability);
@@ -45,6 +45,22 @@ namespace Finanza.Application.Services
             var liability = await repository.GetByIdAsync(id);
             await repository.DeleteAsync(liability);
             await unitOfWork.CommitAsync();
+        }
+
+        public async Task<LiabilityInstallmentResponse> PayInstallmentAsync(Guid installmentId, PayLiabilityInstallmentRequest request)
+        {
+            var installment = await repository.GetInstallmentByIdAsync(installmentId);
+            installment.Pay(request.PaidAt);
+            await unitOfWork.CommitAsync();
+            return LiabilityInstallmentResponse.Create(installment);
+        }
+
+        public async Task<LiabilityInstallmentResponse> UnpayInstallmentAsync(Guid installmentId)
+        {
+            var installment = await repository.GetInstallmentByIdAsync(installmentId);
+            installment.Unpay();
+            await unitOfWork.CommitAsync();
+            return LiabilityInstallmentResponse.Create(installment);
         }
     }
 }

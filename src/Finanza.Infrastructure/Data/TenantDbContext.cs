@@ -15,8 +15,9 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<AssetValueHistory>  AssetValueHistories { get; set; }
     public DbSet<Investment>         Investments         { get; set; }
     public DbSet<Goal>               Goals               { get; set; }
-    public DbSet<LoanReceivable>     LoanReceivables     { get; set; }
-    public DbSet<LoanInstallment>    LoanInstallments    { get; set; }
+    public DbSet<LoanReceivable>        LoanReceivables        { get; set; }
+    public DbSet<LoanInstallment>       LoanInstallments       { get; set; }
+    public DbSet<LiabilityInstallment>  LiabilityInstallments  { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -69,6 +70,24 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .HasForeignKey(t => t.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
+
+            builder.HasOne(t => t.Asset)
+                .WithMany()
+                .HasForeignKey(t => t.AssetId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+            builder.HasOne(t => t.Liability)
+                .WithMany()
+                .HasForeignKey(t => t.LiabilityId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+            builder.HasOne(t => t.LoanReceivable)
+                .WithMany()
+                .HasForeignKey(t => t.LoanReceivableId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
         });
 
         modelBuilder.Entity<Account>(builder =>
@@ -114,6 +133,28 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
                 .IsRequired()
                 .HasConversion(m => m.Value, v => new Money(v))
                 .HasPrecision(18, 2);
+
+            builder.Property(l => l.Notes).HasMaxLength(300);
+
+            builder.Ignore(l => l.TotalPaid);
+            builder.Ignore(l => l.Balance);
+            builder.Ignore(l => l.IsSettled);
+            builder.Ignore(l => l.HasOverdue);
+        });
+
+        modelBuilder.Entity<LiabilityInstallment>(builder =>
+        {
+            builder.HasKey(i => i.Id);
+
+            builder.Property(i => i.Amount)
+                .IsRequired()
+                .HasConversion(m => m.Value, v => new Money(v))
+                .HasPrecision(18, 2);
+
+            builder.HasOne(i => i.Liability)
+                .WithMany(l => l.Installments)
+                .HasForeignKey(i => i.LiabilityId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Goal>(builder =>

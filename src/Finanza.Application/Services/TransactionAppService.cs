@@ -86,7 +86,10 @@ namespace Finanza.Application.Services
                 Mapper.Mapper.TransactionType(request.TransactionType),
                 request.CategoryId,
                 request.AccountId,
-                request.DestinationAccountId
+                request.DestinationAccountId,
+                request.AssetId,
+                request.LiabilityId,
+                request.LoanReceivableId
             );
             repository.Update(transaction);
             await unitOfWork.CommitAsync();

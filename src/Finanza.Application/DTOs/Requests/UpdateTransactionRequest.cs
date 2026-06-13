@@ -9,5 +9,8 @@
         public Guid? CategoryId { get; set; }
         public Guid? AccountId { get; set; }
         public Guid? DestinationAccountId { get; set; }
+        public Guid? AssetId { get; set; }
+        public Guid? LiabilityId { get; set; }
+        public Guid? LoanReceivableId { get; set; }
     }
 }

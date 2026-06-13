@@ -29,6 +29,12 @@ namespace Finanza.API.Endpoints
                 await service.DeleteAsync(id);
                 return Results.NoContent();
             });
+
+            group.MapPost("/installments/{installmentId:guid}/pay", async (Guid installmentId, PayLiabilityInstallmentRequest request, ILiabilityAppService service) =>
+                Results.Ok(await service.PayInstallmentAsync(installmentId, request)));
+
+            group.MapPost("/installments/{installmentId:guid}/unpay", async (Guid installmentId, ILiabilityAppService service) =>
+                Results.Ok(await service.UnpayInstallmentAsync(installmentId)));
         }
     }
 }
