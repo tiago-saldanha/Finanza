@@ -34,3 +34,5 @@
 /src/Finanza.Client/obj/Debug
 /src/Finanza.Infrastructure/Tenants
 /.claude
+/src/Finanza.Client/obj/Release
+/tests/Finanza.API.Tests/bin/Release/net8.0
