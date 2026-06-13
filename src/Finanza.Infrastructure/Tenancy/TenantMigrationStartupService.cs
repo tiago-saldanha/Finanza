@@ -7,17 +7,15 @@ using Microsoft.Extensions.Logging;
 namespace Finanza.Infrastructure.Tenancy;
 
 /// <summary>
-/// Aplica migrations incrementais em todos os bancos SQLite de tenants existentes
-/// quando a aplicação inicia. Garante que novos campos (ex: DestinationAccountId)
-/// sejam adicionados sem recriar os dados existentes.
+/// Garante que todos os bancos SQLite de tenants existentes estejam no schema atual ao iniciar a aplicação.
+/// Para bancos criados antes das migrations formais, aplica as alterações incrementalmente via SQL
+/// e registra a migration consolidada no histórico do EF.
 /// </summary>
 public class TenantMigrationStartupService(
     IConfiguration configuration,
     ILogger<TenantMigrationStartupService> logger) : IHostedService
 {
-    private const string InitialMigrationId         = "20260612000339_AddTransferTransaction";
-    private const string LoanMigrationId             = "20260612003013_AddLoanReceivable";
-    private const string PatrimonialLinksMigrationId = "20260613161609_AddLiabilityInstallmentsAndTransactionLinks";
+    private const string InitialCreateMigrationId = "20260614000000_InitialCreate";
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -27,10 +25,7 @@ public class TenantMigrationStartupService(
 
         foreach (var dbFile in Directory.GetFiles(baseFolder, "user_*.db"))
         {
-            try
-            {
-                MigrateIfNeeded(dbFile);
-            }
+            try { MigrateIfNeeded(dbFile); }
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Falha ao migrar banco de tenant: {DbFile}", dbFile);
@@ -52,7 +47,7 @@ public class TenantMigrationStartupService(
         using var conn = context.Database.GetDbConnection();
         conn.Open();
 
-        // Garante tabela de histórico
+        // 1. Garante tabela de histórico do EF
         using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = """
@@ -64,20 +59,23 @@ public class TenantMigrationStartupService(
             cmd.ExecuteNonQuery();
         }
 
-        // Marca migration inicial se não estiver registrada
+        // 2. Verifica se a migration consolidada já está registrada — se sim, nada a fazer
+        bool alreadyMigrated;
         using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = $"""
-                INSERT OR IGNORE INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-                VALUES ('{InitialMigrationId}', '8.0.0');
+                SELECT COUNT(*) FROM "__EFMigrationsHistory"
+                WHERE "MigrationId" = '{InitialCreateMigrationId}';
                 """;
-            cmd.ExecuteNonQuery();
+            alreadyMigrated = Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
-        // Adiciona DestinationAccountId se não existir
-        AddColumnIfNotExists(conn, "Transactions", "DestinationAccountId", "TEXT NULL");
+        if (alreadyMigrated) return;
 
-        // Tabelas das fases 4-8 que podem estar faltando em bancos antigos
+        // 3. Banco existente pré-migration: aplica todas as alterações incrementais via SQL
+        //    (idempotente — usa IF NOT EXISTS / OR IGNORE em tudo)
+
+        // Tabelas base
         CreateTableIfNotExists(conn, "Assets", """
             CREATE TABLE IF NOT EXISTS "Assets" (
                 "Id"    TEXT NOT NULL CONSTRAINT "PK_Assets" PRIMARY KEY,
@@ -86,6 +84,7 @@ public class TenantMigrationStartupService(
                 "Value" TEXT NOT NULL
             )
             """);
+
         CreateTableIfNotExists(conn, "Liabilities", """
             CREATE TABLE IF NOT EXISTS "Liabilities" (
                 "Id"    TEXT NOT NULL CONSTRAINT "PK_Liabilities" PRIMARY KEY,
@@ -94,6 +93,7 @@ public class TenantMigrationStartupService(
                 "Value" TEXT NOT NULL
             )
             """);
+
         CreateTableIfNotExists(conn, "PatrimonySnapshots", """
             CREATE TABLE IF NOT EXISTS "PatrimonySnapshots" (
                 "Id"               TEXT NOT NULL CONSTRAINT "PK_PatrimonySnapshots" PRIMARY KEY,
@@ -102,6 +102,7 @@ public class TenantMigrationStartupService(
                 "TotalLiabilities" TEXT NOT NULL
             )
             """);
+
         CreateTableIfNotExists(conn, "AssetValueHistories", """
             CREATE TABLE IF NOT EXISTS "AssetValueHistories" (
                 "Id"      TEXT NOT NULL CONSTRAINT "PK_AssetValueHistories" PRIMARY KEY,
@@ -112,6 +113,7 @@ public class TenantMigrationStartupService(
                     FOREIGN KEY ("AssetId") REFERENCES "Assets" ("Id") ON DELETE CASCADE
             )
             """);
+
         CreateTableIfNotExists(conn, "Investments", """
             CREATE TABLE IF NOT EXISTS "Investments" (
                 "Id"             TEXT NOT NULL CONSTRAINT "PK_Investments" PRIMARY KEY,
@@ -121,6 +123,7 @@ public class TenantMigrationStartupService(
                 "CurrentValue"   TEXT NOT NULL
             )
             """);
+
         CreateTableIfNotExists(conn, "Goals", """
             CREATE TABLE IF NOT EXISTS "Goals" (
                 "Id"            TEXT NOT NULL CONSTRAINT "PK_Goals" PRIMARY KEY,
@@ -131,8 +134,6 @@ public class TenantMigrationStartupService(
             )
             """);
 
-        // Migration: AddLoanReceivable
-        MarkMigrationAppliedIfTablesExist(conn, LoanMigrationId, "LoanReceivables");
         CreateTableIfNotExists(conn, "LoanReceivables", """
             CREATE TABLE IF NOT EXISTS "LoanReceivables" (
                 "Id"           TEXT NOT NULL CONSTRAINT "PK_LoanReceivables" PRIMARY KEY,
@@ -143,6 +144,7 @@ public class TenantMigrationStartupService(
                 "Notes"        TEXT NULL
             )
             """);
+
         CreateTableIfNotExists(conn, "LoanInstallments", """
             CREATE TABLE IF NOT EXISTS "LoanInstallments" (
                 "Id"               TEXT NOT NULL CONSTRAINT "PK_LoanInstallments" PRIMARY KEY,
@@ -156,15 +158,6 @@ public class TenantMigrationStartupService(
             )
             """);
 
-        // Migration: AddLiabilityInstallmentsAndTransactionLinks
-        MarkMigrationAppliedIfTablesExist(conn, PatrimonialLinksMigrationId, "LiabilityInstallments");
-
-        // Novos campos em Liabilities
-        AddColumnIfNotExists(conn, "Liabilities", "StartDate", "TEXT NULL");
-        AddColumnIfNotExists(conn, "Liabilities", "DueDate",   "TEXT NULL");
-        AddColumnIfNotExists(conn, "Liabilities", "Notes",     "TEXT NULL");
-
-        // Nova tabela LiabilityInstallments
         CreateTableIfNotExists(conn, "LiabilityInstallments", """
             CREATE TABLE IF NOT EXISTS "LiabilityInstallments" (
                 "Id"          TEXT NOT NULL CONSTRAINT "PK_LiabilityInstallments" PRIMARY KEY,
@@ -178,48 +171,49 @@ public class TenantMigrationStartupService(
             )
             """);
 
-        // Novos campos em Transactions (vínculos patrimoniais)
-        AddColumnIfNotExists(conn, "Transactions", "AssetId",          "TEXT NULL");
-        AddColumnIfNotExists(conn, "Transactions", "LiabilityId",      "TEXT NULL");
-        AddColumnIfNotExists(conn, "Transactions", "LoanReceivableId", "TEXT NULL");
-        AddColumnIfNotExists(conn, "Transactions", "InvestmentId",     "TEXT NULL");
+        // Colunas adicionadas em fases incrementais
+        AddColumnIfNotExists(conn, "Transactions",  "DestinationAccountId", "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions",  "AssetId",              "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions",  "LiabilityId",          "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions",  "LoanReceivableId",     "TEXT NULL");
+        AddColumnIfNotExists(conn, "Transactions",  "InvestmentId",         "TEXT NULL");
+        AddColumnIfNotExists(conn, "Liabilities",   "StartDate",            "TEXT NULL");
+        AddColumnIfNotExists(conn, "Liabilities",   "DueDate",              "TEXT NULL");
+        AddColumnIfNotExists(conn, "Liabilities",   "Notes",                "TEXT NULL");
 
-        // Converte tipos obsoletos: Investment (3) e Loan (4) → Expense (1)
+        // Migração de dados: converter tipos obsoletos para Expense
         using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = "UPDATE \"Transactions\" SET \"Type\" = 1 WHERE \"Type\" IN (3, 4)";
             cmd.ExecuteNonQuery();
         }
-    }
 
-    private static void MarkMigrationAppliedIfTablesExist(System.Data.Common.DbConnection conn, string migrationId, string tableToCheck)
-    {
-        // Se a tabela já existe no banco (criada fora de migrations), marca como aplicada
-        using var checkCmd = conn.CreateCommand();
-        checkCmd.CommandText = $"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{tableToCheck}'";
-        var exists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+        // 4. Substitui histórico de migrations fragmentado pelo ID consolidado
+        using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "DELETE FROM \"__EFMigrationsHistory\"";
+            cmd.ExecuteNonQuery();
+        }
 
-        using var insertCmd = conn.CreateCommand();
-        insertCmd.CommandText = $"""
-            INSERT OR IGNORE INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-            VALUES ('{migrationId}', '8.0.0');
-            """;
-        insertCmd.ExecuteNonQuery();
-
-        _ = exists; // tabela pode ou não existir — a migration é marcada de qualquer forma para o Migrate() não recriar
+        using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = $"""
+                INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+                VALUES ('{InitialCreateMigrationId}', '8.0.23');
+                """;
+            cmd.ExecuteNonQuery();
+        }
     }
 
     private static void CreateTableIfNotExists(System.Data.Common.DbConnection conn, string tableName, string createSql)
     {
         using var checkCmd = conn.CreateCommand();
         checkCmd.CommandText = $"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{tableName}'";
-        var exists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
-        if (!exists)
-        {
-            using var createCmd = conn.CreateCommand();
-            createCmd.CommandText = createSql;
-            createCmd.ExecuteNonQuery();
-        }
+        if (Convert.ToInt32(checkCmd.ExecuteScalar()) > 0) return;
+
+        using var createCmd = conn.CreateCommand();
+        createCmd.CommandText = createSql;
+        createCmd.ExecuteNonQuery();
     }
 
     private static void AddColumnIfNotExists(System.Data.Common.DbConnection conn, string table, string column, string definition)
@@ -231,11 +225,10 @@ public class TenantMigrationStartupService(
             while (reader.Read())
                 columns.Add(reader.GetString(1));
 
-        if (!columns.Contains(column))
-        {
-            using var alterCmd = conn.CreateCommand();
-            alterCmd.CommandText = $"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {definition}";
-            alterCmd.ExecuteNonQuery();
-        }
+        if (columns.Contains(column)) return;
+
+        using var alterCmd = conn.CreateCommand();
+        alterCmd.CommandText = $"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {definition}";
+        alterCmd.ExecuteNonQuery();
     }
 }
