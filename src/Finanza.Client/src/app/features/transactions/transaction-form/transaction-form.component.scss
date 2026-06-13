@@ -60,7 +60,11 @@
         }
       }
 
-      .link-field { margin-top: 4px; }
+      .link-field {
+        margin-top: 4px;
+        width: 100%;
+        ::ng-deep .mat-mdc-form-field-hint-wrapper { white-space: nowrap; }
+      }
     }
     mat-dialog-actions { padding: 16px 24px; gap: 8px; }
 
