@@ -57,10 +57,11 @@ export class PatrimonyComponent implements OnInit {
     return getComputedStyle(document.body).getPropertyValue(name).trim();
   }
 
-  takingSnapshot = signal(false);
-  loading   = signal(true);
-  netWorth  = signal<NetWorth | null>(null);
-  snapshots = signal<PatrimonySnapshot[]>([]);
+  takingSnapshot    = signal(false);
+  loading           = signal(true);
+  netWorth          = signal<NetWorth | null>(null);
+  snapshots         = signal<PatrimonySnapshot[]>([]);
+  expandedLiability = signal<string | null>(null);
 
   readonly assetLabels     = ASSET_TYPE_LABELS;
   readonly liabilityLabels = LIABILITY_TYPE_LABELS;
@@ -226,6 +227,31 @@ export class PatrimonyComponent implements OnInit {
     this.confirmDelete(`passivo "${item.name}"`, () =>
       this.service.deleteLiability(item.id).subscribe({ next: () => this.load() })
     );
+  }
+
+  toggleInstallments(liabilityId: string): void {
+    this.expandedLiability.set(this.expandedLiability() === liabilityId ? null : liabilityId);
+  }
+
+  payInstallment(installmentId: string, liabilityId: string): void {
+    const today = new Date().toISOString();
+    this.service.payLiabilityInstallment(installmentId, { paidAt: today }).subscribe({
+      next: () => {
+        this.snackBar.open('Parcela paga!', 'OK', { duration: 3000 });
+        this.load();
+        this.expandedLiability.set(liabilityId);
+      },
+    });
+  }
+
+  unpayInstallment(installmentId: string, liabilityId: string): void {
+    this.service.unpayLiabilityInstallment(installmentId).subscribe({
+      next: () => {
+        this.snackBar.open('Pagamento desfeito.', 'OK', { duration: 3000 });
+        this.load();
+        this.expandedLiability.set(liabilityId);
+      },
+    });
   }
 
   takeSnapshot(): void {

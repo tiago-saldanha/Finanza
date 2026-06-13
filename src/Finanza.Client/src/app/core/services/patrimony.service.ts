@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-import { Asset, AssetRequest, Liability, LiabilityRequest, NetWorth } from '../models/patrimony.model';
+import { Asset, AssetRequest, Liability, LiabilityInstallment, LiabilityRequest, NetWorth, PayLiabilityInstallmentRequest } from '../models/patrimony.model';
 
 @Injectable({ providedIn: 'root' })
 export class PatrimonyService {
@@ -33,5 +33,11 @@ export class PatrimonyService {
   }
   deleteLiability(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/liabilities/${id}`);
+  }
+  payLiabilityInstallment(installmentId: string, req: PayLiabilityInstallmentRequest): Observable<LiabilityInstallment> {
+    return this.http.post<LiabilityInstallment>(`${this.base}/liabilities/installments/${installmentId}/pay`, req);
+  }
+  unpayLiabilityInstallment(installmentId: string): Observable<LiabilityInstallment> {
+    return this.http.post<LiabilityInstallment>(`${this.base}/liabilities/installments/${installmentId}/unpay`, {});
   }
 }

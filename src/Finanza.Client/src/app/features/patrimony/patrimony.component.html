@@ -143,11 +143,36 @@
                 <div class="item-info">
                   <div class="item-name">{{ item.name }}</div>
                   <div class="item-type">{{ liabilityLabels[item.type] || item.type }}</div>
+                  @if (item.installmentCount > 0) {
+                    <div class="installment-progress">
+                      <span class="progress-label">{{ item.paidCount }}/{{ item.installmentCount }} parcelas</span>
+                      <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="item.installmentCount > 0 ? (item.paidCount / item.installmentCount) * 100 : 0"></div>
+                      </div>
+                    </div>
+                  }
+                  @if (item.hasOverdue) {
+                    <span class="overdue-badge"><mat-icon>warning</mat-icon> Parcela em atraso</span>
+                  }
+                  @if (item.isSettled) {
+                    <span class="settled-badge"><mat-icon>check_circle</mat-icon> Quitado</span>
+                  }
                 </div>
-                <div class="item-value text-liability">
-                  {{ item.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                <div class="item-value-group">
+                  @if (item.installmentCount > 0) {
+                    <div class="balance-label">Saldo devedor</div>
+                    <div class="item-value text-liability">{{ item.balance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+                    <div class="total-label">de {{ item.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+                  } @else {
+                    <div class="item-value text-liability">{{ item.value | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+                  }
                 </div>
                 <div class="item-actions">
+                  @if (item.installmentCount > 0) {
+                    <button mat-icon-button matTooltip="Ver parcelas" (click)="toggleInstallments(item.id)">
+                      <mat-icon>{{ expandedLiability() === item.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+                    </button>
+                  }
                   <button mat-icon-button matTooltip="Editar" (click)="openEditLiability(item)">
                     <mat-icon>edit</mat-icon>
                   </button>
@@ -156,6 +181,32 @@
                   </button>
                 </div>
               </div>
+
+              @if (expandedLiability() === item.id && item.installments.length > 0) {
+                <mat-divider />
+                <div class="installments-list">
+                  @for (inst of item.installments; track inst.id) {
+                    <div class="installment-row" [class.paid]="inst.isPaid" [class.overdue]="inst.isOverdue">
+                      <span class="inst-number">#{{ inst.number }}</span>
+                      <span class="inst-date">{{ inst.dueDate | date:'dd/MM/yyyy' }}</span>
+                      <span class="inst-amount">{{ inst.amount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+                      @if (inst.isPaid) {
+                        <span class="inst-status paid-status"><mat-icon>check_circle</mat-icon> Pago em {{ inst.paidAt | date:'dd/MM/yy' }}</span>
+                        <button mat-icon-button matTooltip="Desfazer pagamento" (click)="unpayInstallment(inst.id, item.id)">
+                          <mat-icon>undo</mat-icon>
+                        </button>
+                      } @else {
+                        <span class="inst-status" [class.overdue-status]="inst.isOverdue">
+                          {{ inst.isOverdue ? 'Atrasada' : 'Pendente' }}
+                        </span>
+                        <button mat-flat-button class="pay-btn" (click)="payInstallment(inst.id, item.id)">
+                          Pagar
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
             </mat-card>
           }
         }

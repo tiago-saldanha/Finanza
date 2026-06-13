@@ -140,12 +140,14 @@ export class DashboardComponent implements OnInit {
     });
   });
 
-  // ---- KPIs de transações ----
+  // ---- KPIs de transações (excluem movimentações patrimoniais vinculadas) ----
+  private isPure = (t: Transaction) => !t.assetId && !t.liabilityId && !t.loanReceivableId;
+
   totalRevenue = computed(() =>
-    this.periodFiltered().filter(t => t.type === 'Revenue' && t.status === 'Paid').reduce((s, t) => s + t.amount, 0)
+    this.periodFiltered().filter(t => t.type === 'Revenue' && t.status === 'Paid' && this.isPure(t)).reduce((s, t) => s + t.amount, 0)
   );
   totalExpense = computed(() =>
-    this.periodFiltered().filter(t => t.type === 'Expense' && t.status === 'Paid').reduce((s, t) => s + t.amount, 0)
+    this.periodFiltered().filter(t => t.type === 'Expense' && t.status === 'Paid' && this.isPure(t)).reduce((s, t) => s + t.amount, 0)
   );
   monthBalance = computed(() => this.totalRevenue() - this.totalExpense());
   pendingCount = computed(() => this.periodFiltered().filter(t => t.status === 'Pending').length);
@@ -177,7 +179,7 @@ export class DashboardComponent implements OnInit {
   expensePieData = computed<ChartData<'doughnut'>>(() => {
     void this.themeService.current();
     const palette = [this.cssVar('--color-expense'), ...DashboardComponent.EXPENSE_PALETTE.slice(1)];
-    const expenses = this.periodFiltered().filter(t => t.type === 'Expense' && t.status === 'Paid');
+    const expenses = this.periodFiltered().filter(t => t.type === 'Expense' && t.status === 'Paid' && this.isPure(t));
     const byCategory = new Map<string, number>();
     for (const t of expenses) {
       const key = t.categoryName || 'Sem categoria';

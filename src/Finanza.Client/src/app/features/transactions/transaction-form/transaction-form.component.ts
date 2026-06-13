@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,9 +14,13 @@ import { switchMap, of, Subject } from 'rxjs';
 import { CategoryService } from '../../../core/services/category.service';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { FinancialAccountService } from '../../../core/services/financial-account.service';
+import { PatrimonyService } from '../../../core/services/patrimony.service';
+import { LoanService } from '../../../core/services/loan.service';
 import { Transaction } from '../../../core/models/transaction.model';
 import { Category } from '../../../core/models/category.model';
 import { FinancialAccount } from '../../../core/models/financial-account.model';
+import { Asset, Liability } from '../../../core/models/patrimony.model';
+import { Loan } from '../../../core/models/loan.model';
 import { CurrencyMaskDirective } from '../../../core/directives/currency-mask.directive';
 
 export interface TransactionFormData {
@@ -27,7 +31,7 @@ export interface TransactionFormData {
   selector: 'app-transaction-form',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, CurrencyPipe,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -47,13 +51,18 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   private readonly categoryService = inject(CategoryService);
   private readonly transactionService = inject(TransactionService);
   private readonly accountService = inject(FinancialAccountService);
+  private readonly patrimonyService = inject(PatrimonyService);
+  private readonly loanService = inject(LoanService);
   private readonly dialogRef = inject(MatDialogRef<TransactionFormComponent>);
   private readonly dialogData = inject<TransactionFormData>(MAT_DIALOG_DATA, { optional: true });
   private readonly destroy$ = new Subject<void>();
 
   categories = signal<Category[]>([]);
-  accounts = signal<FinancialAccount[]>([]);
-  saving = signal(false);
+  accounts   = signal<FinancialAccount[]>([]);
+  assets     = signal<Asset[]>([]);
+  liabilities = signal<Liability[]>([]);
+  loans      = signal<Loan[]>([]);
+  saving     = signal(false);
 
   get isEdit(): boolean {
     return !!this.dialogData?.transaction;
@@ -68,18 +77,30 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     destinationAccountId: [null as string | null],
     dueDate:              [null as Date | null, Validators.required],
     paymentDate:          [null as Date | null],
+    assetId:              [null as string | null],
+    liabilityId:          [null as string | null],
+    loanReceivableId:     [null as string | null],
   });
 
   isTransfer = computed(() => this.form.get('transactionType')?.value === 'Transfer');
+  linkType   = signal<'none' | 'asset' | 'liability' | 'loan'>('none');
 
   ngOnInit(): void {
-    this.categoryService.getAll().subscribe(cats => {
-      this.categories.set(cats);
-      this.accountService.getAll().subscribe(accounts => {
-        this.accounts.set(accounts);
-        if (this.isEdit) this.fillForm(this.dialogData!.transaction!);
-      });
+    this.categoryService.getAll().subscribe(cats => this.categories.set(cats));
+    this.accountService.getAll().subscribe(accounts => this.accounts.set(accounts));
+    this.patrimonyService.getNetWorth().subscribe(nw => {
+      this.assets.set(nw.assets);
+      this.liabilities.set(nw.liabilities);
     });
+    this.loanService.getAll().subscribe(loans => {
+      this.loans.set(loans.filter(l => !l.isSettled));
+      if (this.isEdit) this.fillForm(this.dialogData!.transaction!);
+    });
+  }
+
+  setLinkType(type: 'none' | 'asset' | 'liability' | 'loan'): void {
+    this.linkType.set(type);
+    this.form.patchValue({ assetId: null, liabilityId: null, loanReceivableId: null });
   }
 
   ngOnDestroy(): void {
@@ -97,7 +118,13 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
       destinationAccountId: tx.destinationAccountId ?? null,
       dueDate:              new Date(tx.dueDate),
       paymentDate:          tx.paymentDate ? new Date(tx.paymentDate) : null,
+      assetId:              tx.assetId ?? null,
+      liabilityId:          tx.liabilityId ?? null,
+      loanReceivableId:     tx.loanReceivableId ?? null,
     });
+    if (tx.assetId)          this.linkType.set('asset');
+    else if (tx.liabilityId) this.linkType.set('liability');
+    else if (tx.loanReceivableId) this.linkType.set('loan');
   }
 
   save(): void {
@@ -118,6 +145,9 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
           accountId:            val.accountId ?? undefined,
           destinationAccountId: val.destinationAccountId ?? undefined,
           dueDate:              dueDate.toISOString(),
+          assetId:              val.assetId ?? undefined,
+          liabilityId:          val.liabilityId ?? undefined,
+          loanReceivableId:     val.loanReceivableId ?? undefined,
         })
       : this.transactionService.create({
           description:          val.description!,
@@ -128,6 +158,9 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
           destinationAccountId: val.destinationAccountId ?? undefined,
           dueDate:              dueDate.toISOString(),
           createdAt:            new Date().toISOString(),
+          assetId:              val.assetId ?? undefined,
+          liabilityId:          val.liabilityId ?? undefined,
+          loanReceivableId:     val.loanReceivableId ?? undefined,
         });
 
     save$.pipe(

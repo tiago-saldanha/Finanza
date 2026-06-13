@@ -8,11 +8,31 @@ export interface Asset {
   value: number;
 }
 
+export interface LiabilityInstallment {
+  id: string;
+  number: number;
+  amount: number;
+  dueDate: string;
+  paidAt?: string;
+  isPaid: boolean;
+  isOverdue: boolean;
+}
+
 export interface Liability {
   id: string;
   name: string;
   type: LiabilityType;
   value: number;
+  startDate?: string;
+  dueDate?: string;
+  notes?: string;
+  totalPaid: number;
+  balance: number;
+  isSettled: boolean;
+  hasOverdue: boolean;
+  installmentCount: number;
+  paidCount: number;
+  installments: LiabilityInstallment[];
 }
 
 export interface NetWorth {
@@ -33,6 +53,14 @@ export interface LiabilityRequest {
   name: string;
   type: number;
   value: number;
+  startDate?: string;
+  dueDate?: string;
+  notes?: string;
+  installmentCount?: number;
+}
+
+export interface PayLiabilityInstallmentRequest {
+  paidAt: string;
 }
 
 export const ASSET_TYPE_OPTIONS: { value: number; label: string; icon: string }[] = [

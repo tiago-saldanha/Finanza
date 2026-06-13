@@ -12,7 +12,8 @@ namespace Finanza.Application.Services
             var liabilities = (await liabilityRepository.GetAllAsync()).ToList();
 
             var totalAssets      = assets.Sum(a => a.Value.Value);
-            var totalLiabilities = liabilities.Sum(l => l.Value.Value);
+            // Para passivos com parcelas, usa o saldo devedor (Balance); sem parcelas, usa o valor cheio
+            var totalLiabilities = liabilities.Sum(l => l.Installments.Count > 0 ? l.Balance : l.Value.Value);
 
             return new NetWorthResponse
             {

@@ -91,6 +91,56 @@
       <mat-hint>Preencha para marcar como pago</mat-hint>
     </mat-form-field>
 
+    <!-- ── Vínculo Patrimonial ─────────────────────────────────────────── -->
+    <div class="link-section full-width">
+      <div class="link-label">Vínculo patrimonial <span class="optional">(opcional)</span></div>
+      <div class="link-chips">
+        <button type="button" [class.active]="linkType() === 'none'"      (click)="setLinkType('none')">Nenhum</button>
+        <button type="button" [class.active]="linkType() === 'asset'"     (click)="setLinkType('asset')">Ativo</button>
+        <button type="button" [class.active]="linkType() === 'liability'" (click)="setLinkType('liability')">Passivo</button>
+        <button type="button" [class.active]="linkType() === 'loan'"      (click)="setLinkType('loan')">Empréstimo concedido</button>
+      </div>
+
+      @if (linkType() === 'asset') {
+        <mat-form-field appearance="outline" class="full-width link-field">
+          <mat-label>Ativo vinculado</mat-label>
+          <mat-select formControlName="assetId">
+            <mat-option [value]="null">Selecione...</mat-option>
+            @for (a of assets(); track a.id) {
+              <mat-option [value]="a.id">{{ a.name }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Esta transação representa compra/venda deste ativo</mat-hint>
+        </mat-form-field>
+      }
+
+      @if (linkType() === 'liability') {
+        <mat-form-field appearance="outline" class="full-width link-field">
+          <mat-label>Passivo vinculado</mat-label>
+          <mat-select formControlName="liabilityId">
+            <mat-option [value]="null">Selecione...</mat-option>
+            @for (l of liabilities(); track l.id) {
+              <mat-option [value]="l.id">{{ l.name }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Esta transação paga uma parcela deste passivo</mat-hint>
+        </mat-form-field>
+      }
+
+      @if (linkType() === 'loan') {
+        <mat-form-field appearance="outline" class="full-width link-field">
+          <mat-label>Empréstimo concedido</mat-label>
+          <mat-select formControlName="loanReceivableId">
+            <mat-option [value]="null">Selecione...</mat-option>
+            @for (l of loans(); track l.id) {
+              <mat-option [value]="l.id">{{ l.borrowerName }} — {{ l.balance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Este recebimento abate o saldo do empréstimo</mat-hint>
+        </mat-form-field>
+      }
+    </div>
+
   </form>
 </mat-dialog-content>
 

@@ -16,6 +16,12 @@ export interface Transaction {
   accountName?: string;
   destinationAccountId?: string;
   destinationAccountName?: string;
+  assetId?: string;
+  assetName?: string;
+  liabilityId?: string;
+  liabilityName?: string;
+  loanReceivableId?: string;
+  loanReceivableName?: string;
 }
 
 export interface CreateTransactionRequest {
@@ -27,6 +33,9 @@ export interface CreateTransactionRequest {
   createdAt: string;
   accountId?: string;
   destinationAccountId?: string;
+  assetId?: string;
+  liabilityId?: string;
+  loanReceivableId?: string;
 }
 
 export interface PayTransactionRequest {
@@ -41,6 +50,9 @@ export interface UpdateTransactionRequest {
   categoryId?: string;
   accountId?: string;
   destinationAccountId?: string;
+  assetId?: string;
+  liabilityId?: string;
+  loanReceivableId?: string;
 }
 
 export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {

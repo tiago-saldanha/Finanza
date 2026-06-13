@@ -8,6 +8,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 import { Observable } from 'rxjs';
 import { PatrimonyService } from '../../../core/services/patrimony.service';
@@ -30,7 +32,8 @@ export interface PatrimonyItemFormData {
   imports: [
     CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, CurrencyMaskDirective,
+    MatProgressSpinnerModule, MatDatepickerModule, MatNativeDateModule,
+    CurrencyMaskDirective,
   ],
   templateUrl: './patrimony-item-form.component.html',
   styleUrl:    './patrimony-item-form.component.scss',
@@ -52,9 +55,13 @@ export class PatrimonyItemFormComponent implements OnInit {
   }
 
   form = this.fb.group({
-    name:  ['', [Validators.required, Validators.minLength(2)]],
-    type:  [null as number | null, Validators.required],
-    value: [null as number | null, [Validators.required, Validators.min(0)]],
+    name:             ['', [Validators.required, Validators.minLength(2)]],
+    type:             [null as number | null, Validators.required],
+    value:            [null as number | null, [Validators.required, Validators.min(0)]],
+    startDate:        [null as Date | null],
+    dueDate:          [null as Date | null],
+    notes:            [null as string | null],
+    installmentCount: [null as number | null, [Validators.min(1), Validators.max(600)]],
   });
 
   ngOnInit(): void {
@@ -62,11 +69,18 @@ export class PatrimonyItemFormComponent implements OnInit {
       this.isEditMode.set(true);
       const item = this.data.item;
       const typeIdx = this.typeOptions.findIndex(o => o.label === this.resolveLabel(item.type));
-      this.form.patchValue({
+      const patch: Record<string, unknown> = {
         name:  item.name,
         type:  typeIdx >= 0 ? this.typeOptions[typeIdx].value : 0,
         value: item.value,
-      });
+      };
+      if (!this.isAsset) {
+        const li = item as Liability;
+        patch['startDate'] = li.startDate ? new Date(li.startDate) : null;
+        patch['dueDate']   = li.dueDate   ? new Date(li.dueDate)   : null;
+        patch['notes']     = li.notes ?? null;
+      }
+      this.form.patchValue(patch);
     }
   }
 
@@ -82,15 +96,25 @@ export class PatrimonyItemFormComponent implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     const val = this.form.value;
-    const req = { name: val.name!, type: val.type!, value: val.value! };
 
     const op$: Observable<Asset | Liability> = this.isAsset
       ? (this.isEditMode()
-          ? this.service.updateAsset((this.data.item as Asset).id, req)
-          : this.service.createAsset(req))
+          ? this.service.updateAsset((this.data.item as Asset).id, { name: val.name!, type: val.type!, value: val.value! })
+          : this.service.createAsset({ name: val.name!, type: val.type!, value: val.value! }))
       : (this.isEditMode()
-          ? this.service.updateLiability((this.data.item as Liability).id, req)
-          : this.service.createLiability(req));
+          ? this.service.updateLiability((this.data.item as Liability).id, {
+              name: val.name!, type: val.type!, value: val.value!,
+              startDate: val.startDate ? val.startDate.toISOString() : undefined,
+              dueDate:   val.dueDate   ? val.dueDate.toISOString()   : undefined,
+              notes:     val.notes ?? undefined,
+            })
+          : this.service.createLiability({
+              name: val.name!, type: val.type!, value: val.value!,
+              startDate:        val.startDate ? val.startDate.toISOString() : undefined,
+              dueDate:          val.dueDate   ? val.dueDate.toISOString()   : undefined,
+              notes:            val.notes ?? undefined,
+              installmentCount: val.installmentCount ?? 0,
+            }));
 
     op$.subscribe({
       next: (result) => { this.saving.set(false); this.dialogRef.close(result); },
