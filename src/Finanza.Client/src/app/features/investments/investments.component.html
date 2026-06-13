@@ -58,31 +58,80 @@
       <!-- KPI Banner -->
       <div class="kpi-row">
         <mat-card class="kpi-card">
-          <div class="kpi-label">Total Investido</div>
-          <div class="kpi-value">{{ p.totalInvested | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          <div class="kpi-icon" style="background:#e3f2fd"><mat-icon style="color:#1565c0">savings</mat-icon></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Total Investido</div>
+            <div class="kpi-value">{{ p.totalInvested | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
         </mat-card>
         <mat-card class="kpi-card">
-          <div class="kpi-label">Valor Atual</div>
-          <div class="kpi-value">{{ p.totalCurrent | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          <div class="kpi-icon" style="background:#e8f5e9"><mat-icon style="color:#2e7d32">account_balance_wallet</mat-icon></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Valor Atual</div>
+            <div class="kpi-value">{{ p.totalCurrent | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
         </mat-card>
-        <mat-card class="kpi-card" [class.positive]="p.totalReturn >= 0" [class.negative]="p.totalReturn < 0">
-          <div class="kpi-label">Retorno Total</div>
-          <div class="kpi-value">{{ p.totalReturn | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
-          <div class="kpi-sub">{{ p.totalReturnRate | number:'1.2-2' }}%</div>
+        <mat-card class="kpi-card">
+          <div class="kpi-icon" [style.background]="p.totalReturn >= 0 ? '#e8f5e9' : '#ffebee'">
+            <mat-icon [style.color]="p.totalReturn >= 0 ? '#2e7d32' : '#c62828'">
+              {{ p.totalReturn >= 0 ? 'trending_up' : 'trending_down' }}
+            </mat-icon>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Retorno Total</div>
+            <div class="kpi-value" [class.text-revenue]="p.totalReturn >= 0" [class.text-expense]="p.totalReturn < 0">
+              {{ p.totalReturn >= 0 ? '+' : '' }}{{ p.totalReturn | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+            </div>
+            <div class="kpi-sub">{{ p.totalReturnRate | number:'1.2-2' }}% acumulado</div>
+          </div>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <div class="kpi-icon" [style.background]="beatingsSelic() ? '#e8f5e9' : '#ffebee'">
+            <mat-icon [style.color]="beatingsSelic() ? '#2e7d32' : '#c62828'">
+              {{ beatingsSelic() ? 'emoji_events' : 'warning' }}
+            </mat-icon>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Benchmark Selic</div>
+            <div class="kpi-value" [class.text-revenue]="beatingsSelic()" [class.text-expense]="!beatingsSelic()">
+              {{ beatingsSelic() ? 'Batendo' : 'Abaixo' }} da Selic
+            </div>
+            <div class="kpi-sub">Carteira {{ p.totalReturnRate | number:'1.1-1' }}% · Selic {{ selicRateAa }}% a.a.</div>
+          </div>
         </mat-card>
       </div>
 
-      <!-- Chart + List -->
-      <div class="content-row">
-        @if (p.allocations.length > 0) {
+      <!-- Gráficos de evolução e benchmark -->
+      @if (p.investments.length > 0) {
+        <div class="charts-row">
+          <mat-card class="chart-card chart-wide">
+            <mat-card-header><mat-card-title>Crescimento por Investimento</mat-card-title></mat-card-header>
+            <mat-card-content>
+              <canvas baseChart [data]="growthBarData()" [options]="growthBarOptions" type="bar"></canvas>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Carteira vs Selic</mat-card-title>
+              <mat-card-subtitle>Referência {{ selicRateAa }}% a.a.</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <canvas baseChart [data]="benchmarkBarData()" [options]="benchmarkBarOptions" type="bar"></canvas>
+            </mat-card-content>
+          </mat-card>
+
           <mat-card class="chart-card">
             <mat-card-header><mat-card-title>Alocação por Tipo</mat-card-title></mat-card-header>
             <mat-card-content>
               <canvas baseChart [data]="chartData()" [options]="chartOptions" type="doughnut"></canvas>
             </mat-card-content>
           </mat-card>
-        }
+        </div>
+      }
 
+      <!-- Carteira -->
+      <div class="content-row">
         <mat-card class="list-card">
           <mat-card-header><mat-card-title>Carteira</mat-card-title></mat-card-header>
           <mat-card-content>
