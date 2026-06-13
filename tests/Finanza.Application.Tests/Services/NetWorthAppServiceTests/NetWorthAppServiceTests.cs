@@ -8,12 +8,16 @@ namespace Finanza.Application.Tests.Services.NetWorthAppServiceTests
 {
     public class NetWorthAppServiceTests
     {
-        private readonly Mock<IAssetRepository>     _assetRepo     = new();
-        private readonly Mock<ILiabilityRepository> _liabilityRepo = new();
-        private readonly NetWorthAppService         _service;
+        private readonly Mock<IAssetRepository>      _assetRepo      = new();
+        private readonly Mock<ILiabilityRepository>  _liabilityRepo  = new();
+        private readonly Mock<IInvestmentRepository> _investmentRepo = new();
+        private readonly NetWorthAppService          _service;
 
         public NetWorthAppServiceTests()
-            => _service = new NetWorthAppService(_assetRepo.Object, _liabilityRepo.Object);
+        {
+            _investmentRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
+            _service = new NetWorthAppService(_assetRepo.Object, _liabilityRepo.Object, _investmentRepo.Object);
+        }
 
         [Fact]
         public async Task GetAsync_ShouldComputeNetWorth()
