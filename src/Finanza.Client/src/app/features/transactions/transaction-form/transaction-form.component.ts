@@ -9,7 +9,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { switchMap, of, Subject } from 'rxjs';
+import { switchMap, of, Subject, concatMap } from 'rxjs';
 
 import { CategoryService } from '../../../core/services/category.service';
 import { TransactionService } from '../../../core/services/transaction.service';
@@ -172,8 +172,18 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
 
     save$.pipe(
       switchMap(tx => {
-        const alreadyPaid = this.isEdit && this.dialogData!.transaction!.status === 'Paid';
-        if (paymentDate && !alreadyPaid) {
+        const wasPaid = this.isEdit && this.dialogData!.transaction!.status === 'Paid';
+        const newPayDate = paymentDate?.toISOString() ?? null;
+        const oldPayDate = this.dialogData?.transaction?.paymentDate ?? null;
+
+        if (wasPaid && newPayDate !== oldPayDate) {
+          // data de pagamento alterada: reabre e re-paga com a nova data (ou só reabre se limpou)
+          const reopen$ = this.transactionService.reopen(tx.id);
+          return newPayDate
+            ? reopen$.pipe(concatMap(() => this.transactionService.pay(tx.id, { paymentDate: newPayDate })))
+            : reopen$;
+        }
+        if (!wasPaid && paymentDate) {
           return this.transactionService.pay(tx.id, { paymentDate: paymentDate.toISOString() });
         }
         return of(tx);

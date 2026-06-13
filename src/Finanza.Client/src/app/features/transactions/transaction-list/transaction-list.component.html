@@ -198,11 +198,13 @@
     <!-- Actions Menu -->
     <mat-menu #menu="matMenu">
       <ng-template matMenuContent let-row="row">
-        @if (row.status === 'Pending') {
+        @if (row.status !== 'Cancelled') {
           <button mat-menu-item (click)="openEditDialog(row)">
             <mat-icon>edit</mat-icon>
             <span>Editar</span>
           </button>
+        }
+        @if (row.status === 'Pending') {
           <button mat-menu-item (click)="payTransaction(row)">
             <mat-icon color="primary">payments</mat-icon>
             <span>Marcar como Pago</span>
@@ -212,7 +214,17 @@
             <span>Cancelar</span>
           </button>
         }
-        @if (row.status === 'Paid' || row.status === 'Cancelled') {
+        @if (row.status === 'Paid') {
+          <button mat-menu-item (click)="cancelTransaction(row)">
+            <mat-icon color="warn">cancel</mat-icon>
+            <span>Cancelar</span>
+          </button>
+          <button mat-menu-item (click)="reopenTransaction(row)">
+            <mat-icon>refresh</mat-icon>
+            <span>Reabrir (Pendente)</span>
+          </button>
+        }
+        @if (row.status === 'Cancelled') {
           <button mat-menu-item (click)="reopenTransaction(row)">
             <mat-icon>refresh</mat-icon>
             <span>Reabrir (Pendente)</span>
