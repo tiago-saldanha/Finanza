@@ -100,9 +100,6 @@ namespace Finanza.Domain.Entities
             if (Status == TransactionStatus.Cancelled)
                 throw new TransactionCancelException("Não é possível cancelar uma transação que já foi cancelada");
 
-            if (Status == TransactionStatus.Paid)
-                throw new TransactionCancelException("Não é possível cancelar uma transação que já foi paga");
-
             Status = TransactionStatus.Cancelled;
             PaymentDate = null;
 
@@ -111,9 +108,6 @@ namespace Finanza.Domain.Entities
 
         public void Update(string description, decimal amount, DateTime dueDate, TransactionType type, Guid? categoryId, Guid? accountId = null, Guid? destinationAccountId = null, Guid? assetId = null, Guid? liabilityId = null, Guid? loanReceivableId = null, Guid? investmentId = null)
         {
-            if (Status == TransactionStatus.Paid)
-                throw new TransactionUpdateException("Não é possível editar uma transação que já foi paga");
-
             if (Status == TransactionStatus.Cancelled)
                 throw new TransactionUpdateException("Não é possível editar uma transação que foi cancelada");
 
