@@ -43,6 +43,48 @@
       </div>
     </div>
 
+    <!-- ── Gráficos ─────────────────────────────────────────────────── -->
+    <div class="charts-row">
+
+      @if (hasSnapshots()) {
+        <mat-card class="chart-card chart-wide">
+          <mat-card-header><mat-card-title>Evolução Patrimonial</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <canvas baseChart [data]="evolutionLineData()" [options]="evolutionLineOptions" type="line"></canvas>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="chart-card chart-wide">
+          <mat-card-header><mat-card-title>Ativos x Passivos por Snapshot</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <canvas baseChart [data]="assetsVsLiabilitiesData()" [options]="barOptions" type="bar"></canvas>
+          </mat-card-content>
+        </mat-card>
+      } @else {
+        <mat-card class="chart-card chart-wide no-data-card">
+          <mat-card-content>
+            <div class="empty-chart">
+              <mat-icon>timeline</mat-icon>
+              <p>Tire ao menos 2 snapshots para ver a evolução patrimonial</p>
+              <button mat-stroked-button (click)="takeSnapshot()" [disabled]="takingSnapshot()">
+                <mat-icon>photo_camera</mat-icon> Tirar Snapshot Agora
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      @if (nw.assets.length > 0) {
+        <mat-card class="chart-card">
+          <mat-card-header><mat-card-title>Distribuição Patrimonial (Ativos)</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <canvas baseChart [data]="distributionData()" [options]="doughnutOptions" type="doughnut"></canvas>
+          </mat-card-content>
+        </mat-card>
+      }
+
+    </div>
+
     <!-- ── Two columns: Assets | Liabilities ────────────────────────── -->
     <div class="columns">
 
