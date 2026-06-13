@@ -20,7 +20,7 @@ import { DashboardTabsComponent } from '../../shared/dashboard-tabs/dashboard-ta
 import { PatrimonySnapshotService } from '../../core/services/patrimony-snapshot.service';
 import { ThemeService } from '../../core/services/theme.service';
 import {
-  Asset, Liability, NetWorth,
+  Asset, Investment, Liability, NetWorth,
   ASSET_TYPE_LABELS, LIABILITY_TYPE_LABELS,
   ASSET_TYPE_OPTIONS, LIABILITY_TYPE_OPTIONS,
 } from '../../core/models/patrimony.model';
@@ -127,6 +127,11 @@ export class PatrimonyComponent implements OnInit {
     for (const a of nw.assets) {
       const label = ASSET_TYPE_LABELS[a.type] ?? a.type;
       byType.set(label, (byType.get(label) ?? 0) + a.value);
+    }
+    // Agrupa investimentos por tipo
+    for (const i of nw.investments) {
+      const label = `Inv: ${i.type}`;
+      byType.set(label, (byType.get(label) ?? 0) + i.currentValue);
     }
     const entries = [...byType.entries()].sort((a, b) => b[1] - a[1]);
     const palette = ['#1565c0','#1976d2','#1e88e5','#42a5f5','#90caf9','#0d47a1','#1a237e','#283593','#303f9f','#3949ab'];

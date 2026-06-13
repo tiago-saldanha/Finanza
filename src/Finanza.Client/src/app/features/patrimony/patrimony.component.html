@@ -31,14 +31,20 @@
       </div>
       <mat-divider vertical />
       <div class="nw-card">
-        <mat-icon class="nw-card-icon icon-asset">trending_up</mat-icon>
-        <div class="nw-card-label">Total de Ativos</div>
+        <mat-icon class="nw-card-icon icon-asset">real_estate_agent</mat-icon>
+        <div class="nw-card-label">Ativos</div>
         <div class="nw-card-value text-asset">{{ nw.totalAssets | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
       </div>
       <mat-divider vertical />
       <div class="nw-card">
+        <mat-icon class="nw-card-icon icon-investment">trending_up</mat-icon>
+        <div class="nw-card-label">Investimentos</div>
+        <div class="nw-card-value text-investment">{{ nw.totalInvestments | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+      </div>
+      <mat-divider vertical />
+      <div class="nw-card">
         <mat-icon class="nw-card-icon icon-liability">trending_down</mat-icon>
-        <div class="nw-card-label">Total de Passivos</div>
+        <div class="nw-card-label">Passivos</div>
         <div class="nw-card-value text-liability">{{ nw.totalLiabilities | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
       </div>
     </div>
@@ -119,6 +125,37 @@
                   <button mat-icon-button matTooltip="Excluir" class="del-btn" (click)="deleteAsset(item)">
                     <mat-icon>delete_outline</mat-icon>
                   </button>
+                </div>
+              </div>
+            </mat-card>
+          }
+        }
+      </section>
+
+      <!-- Investments -->
+      <section class="col">
+        <h2 class="col-title"><mat-icon>trending_up</mat-icon> Investimentos</h2>
+
+        @if (nw.investments.length === 0) {
+          <div class="empty-col">
+            <mat-icon>show_chart</mat-icon>
+            <p>Nenhum investimento cadastrado</p>
+          </div>
+        } @else {
+          @for (inv of nw.investments; track inv.id) {
+            <mat-card class="item-card investment-card">
+              <div class="item-row">
+                <mat-icon class="item-icon investment-icon">show_chart</mat-icon>
+                <div class="item-info">
+                  <div class="item-name">{{ inv.name }}</div>
+                  <div class="item-type">{{ inv.type }}</div>
+                </div>
+                <div class="item-value-group">
+                  <div class="item-value text-investment">{{ inv.currentValue | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+                  <div [class]="inv.return >= 0 ? 'return-positive' : 'return-negative'">
+                    {{ inv.return >= 0 ? '+' : '' }}{{ inv.return | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                    ({{ inv.returnRate >= 0 ? '+' : '' }}{{ inv.returnRate | number:'1.1-1' }}%)
+                  </div>
                 </div>
               </div>
             </mat-card>

@@ -37,10 +37,22 @@ export interface Liability {
 
 export interface NetWorth {
   totalAssets: number;
+  totalInvestments: number;
   totalLiabilities: number;
   netWorth: number;
   assets: Asset[];
   liabilities: Liability[];
+  investments: Investment[];
+}
+
+export interface Investment {
+  id: string;
+  name: string;
+  type: string;
+  investedAmount: number;
+  currentValue: number;
+  return: number;
+  returnRate: number;
 }
 
 export interface AssetRequest {

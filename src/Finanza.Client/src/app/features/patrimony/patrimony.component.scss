@@ -87,10 +87,11 @@
 
 .columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 24px;
 
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+  @media (max-width: 1100px) { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 768px)  { grid-template-columns: 1fr; }
 }
 
 .col {
@@ -123,8 +124,9 @@
   transition: box-shadow 0.2s;
   &:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
 
-  &.asset-card     { border-left: 4px solid #a5d6a7; }
-  &.liability-card { border-left: 4px solid #ef9a9a; }
+  &.asset-card      { border-left: 4px solid #a5d6a7; }
+  &.liability-card  { border-left: 4px solid #ef9a9a; }
+  &.investment-card { border-left: 4px solid #90caf9; }
 }
 
 .item-row {
@@ -162,8 +164,14 @@
   }
 }
 
-.text-asset     { color: var(--color-revenue); }
-.text-liability { color: var(--color-expense); }
+.text-asset       { color: var(--color-revenue); }
+.text-liability   { color: var(--color-expense); }
+.text-investment  { color: #1565c0; }
+
+.icon-investment  { color: #1565c0; }
+
+.return-positive { font-size: 11px; color: var(--color-revenue); }
+.return-negative { font-size: 11px; color: var(--color-expense); }
 
 .item-value-group {
   text-align: right;
