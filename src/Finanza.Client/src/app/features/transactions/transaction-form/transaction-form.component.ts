@@ -9,7 +9,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { switchMap, of, Subject, concatMap } from 'rxjs';
+import { switchMap, of, Subject, concatMap, takeUntil } from 'rxjs';
 
 import { CategoryService } from '../../../core/services/category.service';
 import { TransactionService } from '../../../core/services/transaction.service';
@@ -84,10 +84,14 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     investmentId:         [null as string | null],
   });
 
-  isTransfer = computed(() => this.form.get('transactionType')?.value === 'Transfer');
+  isTransfer = signal(false);
   linkType   = signal<'none' | 'asset' | 'liability' | 'loan' | 'investment'>('none');
 
   ngOnInit(): void {
+    this.form.get('transactionType')!.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(v => this.isTransfer.set(v === 'Transfer'));
+
     this.categoryService.getAll().subscribe(cats => this.categories.set(cats));
     this.accountService.getAll().subscribe(accounts => this.accounts.set(accounts));
     this.patrimonyService.getNetWorth().subscribe(nw => {
@@ -112,6 +116,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   }
 
   private fillForm(tx: Transaction): void {
+    this.isTransfer.set(tx.type === 'Transfer');
     this.form.patchValue({
       description:          tx.description,
       amount:               tx.amount,
