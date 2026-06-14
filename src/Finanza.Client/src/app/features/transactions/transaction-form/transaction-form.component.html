@@ -99,6 +99,7 @@
         <button type="button" [class.active]="linkType() === 'loan'"            (click)="setLinkType('loan')">Empréstimo concedido</button>
         <button type="button" [class.active]="linkType() === 'loanPayable'"     (click)="setLinkType('loanPayable')">Empréstimo obtido</button>
         <button type="button" [class.active]="linkType() === 'investment'"      (click)="setLinkType('investment')">Investimento</button>
+        <button type="button" [class.active]="linkType() === 'goal'"           (click)="setLinkType('goal')">Meta financeira</button>
       </div>
 
       @if (linkType() === 'asset') {
@@ -163,6 +164,19 @@
             }
           </mat-select>
           <mat-hint>Esta transação representa aporte ou resgate neste investimento</mat-hint>
+        </mat-form-field>
+      }
+
+      @if (linkType() === 'goal') {
+        <mat-form-field appearance="outline" class="full-width link-field">
+          <mat-label>Meta financeira</mat-label>
+          <mat-select formControlName="goalId">
+            <mat-option [value]="null">Selecione...</mat-option>
+            @for (g of goals(); track g.id) {
+              <mat-option [value]="g.id">{{ g.name }} — faltam {{ g.remaining | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Este valor é um aporte para essa meta financeira</mat-hint>
         </mat-form-field>
       }
     </div>

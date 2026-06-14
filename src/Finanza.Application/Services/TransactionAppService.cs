@@ -90,7 +90,9 @@ namespace Finanza.Application.Services
                 request.AssetId,
                 request.LiabilityId,
                 request.LoanReceivableId,
-                request.InvestmentId
+                request.LoanPayableId,
+                request.InvestmentId,
+                request.GoalId
             );
             repository.Update(transaction);
             await unitOfWork.CommitAsync();

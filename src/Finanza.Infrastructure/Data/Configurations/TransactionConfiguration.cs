@@ -74,5 +74,11 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .HasForeignKey(t => t.InvestmentId)
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
+
+        builder.HasOne(t => t.Goal)
+            .WithMany()
+            .HasForeignKey(t => t.GoalId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }

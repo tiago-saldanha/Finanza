@@ -17,7 +17,9 @@ import { FinancialAccountService } from '../../../core/services/financial-accoun
 import { PatrimonyService } from '../../../core/services/patrimony.service';
 import { LoanService } from '../../../core/services/loan.service';
 import { LoanPayableService } from '../../../core/services/loan-payable.service';
+import { GoalService } from '../../../core/services/goal.service';
 import { LoanPayable } from '../../../core/models/loan-payable.model';
+import { Goal } from '../../../core/models/goal.model';
 import { Transaction } from '../../../core/models/transaction.model';
 import { Category } from '../../../core/models/category.model';
 import { FinancialAccount } from '../../../core/models/financial-account.model';
@@ -56,6 +58,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   private readonly patrimonyService = inject(PatrimonyService);
   private readonly loanService = inject(LoanService);
   private readonly loanPayableService = inject(LoanPayableService);
+  private readonly goalService = inject(GoalService);
   private readonly dialogRef = inject(MatDialogRef<TransactionFormComponent>);
   private readonly dialogData = inject<TransactionFormData>(MAT_DIALOG_DATA, { optional: true });
   private readonly destroy$ = new Subject<void>();
@@ -67,6 +70,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   investments = signal<Investment[]>([]);
   loans        = signal<Loan[]>([]);
   loanPayables = signal<LoanPayable[]>([]);
+  goals        = signal<Goal[]>([]);
   saving       = signal(false);
 
   get isEdit(): boolean {
@@ -87,10 +91,11 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
     loanReceivableId:     [null as string | null],
     loanPayableId:        [null as string | null],
     investmentId:         [null as string | null],
+    goalId:               [null as string | null],
   });
 
   isTransfer = signal(false);
-  linkType   = signal<'none' | 'asset' | 'liability' | 'loan' | 'loanPayable' | 'investment'>('none');
+  linkType   = signal<'none' | 'asset' | 'liability' | 'loan' | 'loanPayable' | 'investment' | 'goal'>('none');
 
   ngOnInit(): void {
     this.form.get('transactionType')!.valueChanges
@@ -105,15 +110,16 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
       this.investments.set(nw.investments);
     });
     this.loanService.getAll().subscribe(loans => this.loans.set(loans.filter(l => !l.isSettled)));
-    this.loanPayableService.getAll().subscribe(loans => {
-      this.loanPayables.set(loans.filter(l => !l.isSettled));
+    this.loanPayableService.getAll().subscribe(loans => this.loanPayables.set(loans.filter(l => !l.isSettled)));
+    this.goalService.getAll().subscribe(goals => {
+      this.goals.set(goals.filter(g => !g.isCompleted));
       if (this.isEdit) this.fillForm(this.dialogData!.transaction!);
     });
   }
 
-  setLinkType(type: 'none' | 'asset' | 'liability' | 'loan' | 'loanPayable' | 'investment'): void {
+  setLinkType(type: 'none' | 'asset' | 'liability' | 'loan' | 'loanPayable' | 'investment' | 'goal'): void {
     this.linkType.set(type);
-    this.form.patchValue({ assetId: null, liabilityId: null, loanReceivableId: null, loanPayableId: null, investmentId: null });
+    this.form.patchValue({ assetId: null, liabilityId: null, loanReceivableId: null, loanPayableId: null, investmentId: null, goalId: null });
   }
 
   ngOnDestroy(): void {
@@ -137,12 +143,14 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
       loanReceivableId:     tx.loanReceivableId ?? null,
       loanPayableId:        tx.loanPayableId ?? null,
       investmentId:         tx.investmentId ?? null,
+      goalId:               tx.goalId ?? null,
     });
     if (tx.assetId)               this.linkType.set('asset');
     else if (tx.liabilityId)      this.linkType.set('liability');
     else if (tx.loanReceivableId) this.linkType.set('loan');
     else if (tx.loanPayableId)    this.linkType.set('loanPayable');
     else if (tx.investmentId)     this.linkType.set('investment');
+    else if (tx.goalId)           this.linkType.set('goal');
   }
 
   save(): void {
@@ -168,6 +176,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
           loanReceivableId:     val.loanReceivableId ?? undefined,
           loanPayableId:        val.loanPayableId ?? undefined,
           investmentId:         val.investmentId ?? undefined,
+          goalId:               val.goalId ?? undefined,
         })
       : this.transactionService.create({
           description:          val.description!,
@@ -183,6 +192,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
           loanReceivableId:     val.loanReceivableId ?? undefined,
           loanPayableId:        val.loanPayableId ?? undefined,
           investmentId:         val.investmentId ?? undefined,
+          goalId:               val.goalId ?? undefined,
         });
 
     save$.pipe(

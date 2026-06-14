@@ -26,6 +26,8 @@ export interface Transaction {
   loanPayableName?: string;
   investmentId?: string;
   investmentName?: string;
+  goalId?: string;
+  goalName?: string;
 }
 
 export interface CreateTransactionRequest {
@@ -42,6 +44,7 @@ export interface CreateTransactionRequest {
   loanReceivableId?: string;
   loanPayableId?: string;
   investmentId?: string;
+  goalId?: string;
 }
 
 export interface PayTransactionRequest {
@@ -61,6 +64,7 @@ export interface UpdateTransactionRequest {
   loanReceivableId?: string;
   loanPayableId?: string;
   investmentId?: string;
+  goalId?: string;
 }
 
 export const TRANSACTION_STATUS_LABELS: Record<TransactionStatus, string> = {

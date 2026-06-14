@@ -26,6 +26,10 @@ namespace Finanza.Application.DTOs.Responses
         public string? LoanReceivableName { get; private set; }
         public Guid? InvestmentId { get; private set; }
         public string? InvestmentName { get; private set; }
+        public Guid? LoanPayableId { get; private set; }
+        public string? LoanPayableName { get; private set; }
+        public Guid? GoalId { get; private set; }
+        public string? GoalName { get; private set; }
 
         public static TransactionResponse Create(Transaction transaction)
         {
@@ -53,6 +57,10 @@ namespace Finanza.Application.DTOs.Responses
                 LoanReceivableName = transaction.LoanReceivable?.BorrowerName,
                 InvestmentId = transaction.InvestmentId,
                 InvestmentName = transaction.Investment?.Name,
+                LoanPayableId = transaction.LoanPayableId,
+                LoanPayableName = transaction.LoanPayable?.CreditorName,
+                GoalId = transaction.GoalId,
+                GoalName = transaction.Goal?.Name,
             };
         }
     }

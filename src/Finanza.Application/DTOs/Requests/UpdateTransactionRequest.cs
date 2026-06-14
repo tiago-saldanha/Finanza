@@ -12,6 +12,8 @@
         public Guid? AssetId { get; set; }
         public Guid? LiabilityId { get; set; }
         public Guid? LoanReceivableId { get; set; }
+        public Guid? LoanPayableId { get; set; }
         public Guid? InvestmentId { get; set; }
+        public Guid? GoalId { get; set; }
     }
 }

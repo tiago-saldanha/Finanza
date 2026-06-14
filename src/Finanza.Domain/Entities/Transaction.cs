@@ -10,7 +10,7 @@ namespace Finanza.Domain.Entities
     {
         protected Transaction() { }
 
-        private Transaction(Guid id, Description description, Money amount, TransactionDates dates, TransactionType type, Guid? categoryId, Guid? accountId, Guid? destinationAccountId, Guid? assetId, Guid? liabilityId, Guid? loanReceivableId, Guid? loanPayableId, Guid? investmentId)
+        private Transaction(Guid id, Description description, Money amount, TransactionDates dates, TransactionType type, Guid? categoryId, Guid? accountId, Guid? destinationAccountId, Guid? assetId, Guid? liabilityId, Guid? loanReceivableId, Guid? loanPayableId, Guid? investmentId, Guid? goalId)
         {
             Id = id;
             Description = description;
@@ -25,10 +25,11 @@ namespace Finanza.Domain.Entities
             LoanReceivableId = loanReceivableId;
             LoanPayableId = loanPayableId;
             InvestmentId = investmentId;
+            GoalId = goalId;
             Status = TransactionStatus.Pending;
         }
 
-        public static Transaction Create(string description, decimal amount, DateTime dueDate, TransactionType type, Guid? categoryId, DateTime createdAt, Guid? accountId = null, Guid? destinationAccountId = null, Guid? assetId = null, Guid? liabilityId = null, Guid? loanReceivableId = null, Guid? loanPayableId = null, Guid? investmentId = null)
+        public static Transaction Create(string description, decimal amount, DateTime dueDate, TransactionType type, Guid? categoryId, DateTime createdAt, Guid? accountId = null, Guid? destinationAccountId = null, Guid? assetId = null, Guid? liabilityId = null, Guid? loanReceivableId = null, Guid? loanPayableId = null, Guid? investmentId = null, Guid? goalId = null)
         {
             return new Transaction(
                 Guid.NewGuid(),
@@ -43,7 +44,8 @@ namespace Finanza.Domain.Entities
                 liabilityId,
                 loanReceivableId,
                 loanPayableId,
-                investmentId
+                investmentId,
+                goalId
             );
         }
 
@@ -70,6 +72,8 @@ namespace Finanza.Domain.Entities
         public virtual LoanPayable? LoanPayable { get; private set; }
         public Guid? InvestmentId { get; private set; }
         public virtual Investment? Investment { get; private set; }
+        public Guid? GoalId { get; private set; }
+        public virtual Goal? Goal { get; private set; }
 
         public void Pay(DateTime paymentDate)
         {
@@ -110,7 +114,7 @@ namespace Finanza.Domain.Entities
             AddDomainEvent(new TransactionCancelEvent(Id, Status));
         }
 
-        public void Update(string description, decimal amount, DateTime dueDate, TransactionType type, Guid? categoryId, Guid? accountId = null, Guid? destinationAccountId = null, Guid? assetId = null, Guid? liabilityId = null, Guid? loanReceivableId = null, Guid? loanPayableId = null, Guid? investmentId = null)
+        public void Update(string description, decimal amount, DateTime dueDate, TransactionType type, Guid? categoryId, Guid? accountId = null, Guid? destinationAccountId = null, Guid? assetId = null, Guid? liabilityId = null, Guid? loanReceivableId = null, Guid? loanPayableId = null, Guid? investmentId = null, Guid? goalId = null)
         {
             if (Status == TransactionStatus.Cancelled)
                 throw new TransactionUpdateException("Não é possível editar uma transação que foi cancelada");
@@ -127,6 +131,7 @@ namespace Finanza.Domain.Entities
             LoanReceivableId = loanReceivableId;
             LoanPayableId = loanPayableId;
             InvestmentId = investmentId;
+            GoalId = goalId;
         }
 
         public bool IsOverdue(DateTime today) => Status == TransactionStatus.Pending && today.Date > Dates.DueDate.Date;

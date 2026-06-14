@@ -236,6 +236,11 @@ public class TenantMigrationStartupService(
 
             AddColumnIfNotExists(conn, "Transactions", "LoanPayableId", "TEXT NULL");
         });
+
+        ApplyMigrationIfNeeded(conn, "20260614200000_AddGoalIdToTransaction", () =>
+        {
+            AddColumnIfNotExists(conn, "Transactions", "GoalId", "TEXT NULL");
+        });
     }
 
     private static void ApplyMigrationIfNeeded(System.Data.Common.DbConnection conn, string migrationId, Action apply)
