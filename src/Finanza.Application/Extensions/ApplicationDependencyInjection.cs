@@ -21,6 +21,7 @@ namespace Finanza.Application.Extensions
             services.AddScoped<IGoalAppService, GoalAppService>();
             services.AddScoped<IFireAppService, FireAppService>();
             services.AddScoped<ILoanAppService, LoanAppService>();
+            services.AddScoped<ILoanPayableAppService, LoanPayableAppService>();
 
             return services;
         }
