@@ -13,8 +13,10 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<Liability>             Liabilities           { get; set; }
     public DbSet<LiabilityInstallment>  LiabilityInstallments { get; set; }
     public DbSet<Investment>            Investments           { get; set; }
-    public DbSet<LoanReceivable>        LoanReceivables       { get; set; }
-    public DbSet<LoanInstallment>       LoanInstallments      { get; set; }
+    public DbSet<LoanReceivable>             LoanReceivables            { get; set; }
+    public DbSet<LoanInstallment>            LoanInstallments           { get; set; }
+    public DbSet<LoanPayable>                LoanPayables               { get; set; }
+    public DbSet<LoanPayableInstallment>     LoanPayableInstallments    { get; set; }
     public DbSet<Goal>                  Goals                 { get; set; }
     public DbSet<PatrimonySnapshot>     PatrimonySnapshots    { get; set; }
 

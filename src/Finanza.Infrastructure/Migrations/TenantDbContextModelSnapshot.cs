@@ -284,6 +284,65 @@ namespace Finanza.Infrastructure.Migrations
                     b.ToTable("LoanReceivables");
                 });
 
+            modelBuilder.Entity("Finanza.Domain.Entities.LoanPayable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreditorName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LoanPayables");
+                });
+
+            modelBuilder.Entity("Finanza.Domain.Entities.LoanPayableInstallment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("LoanPayableId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoanPayableId");
+
+                    b.ToTable("LoanPayableInstallments");
+                });
+
             modelBuilder.Entity("Finanza.Domain.Entities.PatrimonySnapshot", b =>
                 {
                     b.Property<Guid>("Id")
@@ -342,6 +401,9 @@ namespace Finanza.Infrastructure.Migrations
                     b.Property<Guid?>("LoanReceivableId")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("LoanPayableId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("TEXT");
 
@@ -375,6 +437,8 @@ namespace Finanza.Infrastructure.Migrations
                     b.HasIndex("LiabilityId");
 
                     b.HasIndex("LoanReceivableId");
+
+                    b.HasIndex("LoanPayableId");
 
                     b.ToTable("Transactions");
                 });
@@ -449,6 +513,11 @@ namespace Finanza.Infrastructure.Migrations
                         .HasForeignKey("LoanReceivableId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Finanza.Domain.Entities.LoanPayable", "LoanPayable")
+                        .WithMany()
+                        .HasForeignKey("LoanPayableId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Account");
 
                     b.Navigation("Asset");
@@ -462,6 +531,24 @@ namespace Finanza.Infrastructure.Migrations
                     b.Navigation("Liability");
 
                     b.Navigation("LoanReceivable");
+
+                    b.Navigation("LoanPayable");
+                });
+
+            modelBuilder.Entity("Finanza.Domain.Entities.LoanPayableInstallment", b =>
+                {
+                    b.HasOne("Finanza.Domain.Entities.LoanPayable", "LoanPayable")
+                        .WithMany("Installments")
+                        .HasForeignKey("LoanPayableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LoanPayable");
+                });
+
+            modelBuilder.Entity("Finanza.Domain.Entities.LoanPayable", b =>
+                {
+                    b.Navigation("Installments");
                 });
 
             modelBuilder.Entity("Finanza.Domain.Entities.Account", b =>

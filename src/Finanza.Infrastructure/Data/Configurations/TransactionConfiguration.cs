@@ -63,6 +63,12 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
+        builder.HasOne(t => t.LoanPayable)
+            .WithMany()
+            .HasForeignKey(t => t.LoanPayableId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
         builder.HasOne(t => t.Investment)
             .WithMany()
             .HasForeignKey(t => t.InvestmentId)
