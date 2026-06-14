@@ -39,6 +39,12 @@
       <span class="toolbar-date">{{ today | date:'fullDate':'':'pt-BR' }}</span>
       <span class="user-name">{{ auth.user()?.fullName }}</span>
 
+      <!-- Dark mode toggle -->
+      <button mat-icon-button (click)="themeService.toggleDark()"
+              [matTooltip]="themeService.darkMode() ? 'Modo claro' : 'Modo escuro'">
+        <mat-icon>{{ themeService.darkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+
       <!-- Seletor de tema -->
       <button mat-icon-button matTooltip="Trocar tema" [matMenuTriggerFor]="themeMenu">
         <mat-icon>palette</mat-icon>
