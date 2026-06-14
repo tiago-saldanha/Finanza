@@ -59,7 +59,7 @@ public class TenantMigrationStartupService(
             cmd.ExecuteNonQuery();
         }
 
-        // 2. Verifica se a migration consolidada já está registrada — se sim, nada a fazer
+        // 2. Verifica se a migration consolidada já está registrada
         bool alreadyMigrated;
         using (var cmd = conn.CreateCommand())
         {
@@ -70,7 +70,9 @@ public class TenantMigrationStartupService(
             alreadyMigrated = Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
-        if (alreadyMigrated) return;
+        // 3. Banco legado: aplica schema completo via SQL e registra InitialCreate
+        if (!alreadyMigrated)
+        {
 
         // 3. Banco existente pré-migration: aplica todas as alterações incrementais via SQL
         //    (idempotente — usa IF NOT EXISTS / OR IGNORE em tudo)
@@ -203,6 +205,53 @@ public class TenantMigrationStartupService(
                 """;
             cmd.ExecuteNonQuery();
         }
+        } // fim do bloco if (!alreadyMigrated)
+
+        // 5. Migrations incrementais — aplicadas independentemente do caminho acima
+        ApplyMigrationIfNeeded(conn, "20260614100000_AddLoanPayable", () =>
+        {
+            CreateTableIfNotExists(conn, "LoanPayables", """
+                CREATE TABLE IF NOT EXISTS "LoanPayables" (
+                    "Id"           TEXT NOT NULL CONSTRAINT "PK_LoanPayables" PRIMARY KEY,
+                    "CreditorName" TEXT NOT NULL,
+                    "TotalAmount"  TEXT NOT NULL,
+                    "StartDate"    TEXT NOT NULL,
+                    "DueDate"      TEXT NOT NULL,
+                    "Notes"        TEXT NULL
+                )
+                """);
+
+            CreateTableIfNotExists(conn, "LoanPayableInstallments", """
+                CREATE TABLE IF NOT EXISTS "LoanPayableInstallments" (
+                    "Id"            TEXT NOT NULL CONSTRAINT "PK_LoanPayableInstallments" PRIMARY KEY,
+                    "LoanPayableId" TEXT NOT NULL,
+                    "Number"        INTEGER NOT NULL,
+                    "Amount"        TEXT NOT NULL,
+                    "DueDate"       TEXT NOT NULL,
+                    "PaidAt"        TEXT NULL,
+                    CONSTRAINT "FK_LoanPayableInstallments_LoanPayables_LoanPayableId"
+                        FOREIGN KEY ("LoanPayableId") REFERENCES "LoanPayables" ("Id") ON DELETE CASCADE
+                )
+                """);
+
+            AddColumnIfNotExists(conn, "Transactions", "LoanPayableId", "TEXT NULL");
+        });
+    }
+
+    private static void ApplyMigrationIfNeeded(System.Data.Common.DbConnection conn, string migrationId, Action apply)
+    {
+        using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = $"SELECT COUNT(*) FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = '{migrationId}'";
+        if (Convert.ToInt32(checkCmd.ExecuteScalar()) > 0) return;
+
+        apply();
+
+        using var insertCmd = conn.CreateCommand();
+        insertCmd.CommandText = $"""
+            INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('{migrationId}', '8.0.23');
+            """;
+        insertCmd.ExecuteNonQuery();
     }
 
     private static void CreateTableIfNotExists(System.Data.Common.DbConnection conn, string tableName, string createSql)
