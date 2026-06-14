@@ -129,6 +129,7 @@ namespace Finanza.API.Extensions
             app.MapGoalEndpoints();
             app.MapFireEndpoints();
             app.MapLoanEndpoints();
+            app.MapLoanPayableEndpoints();
 
             return app;
         }
