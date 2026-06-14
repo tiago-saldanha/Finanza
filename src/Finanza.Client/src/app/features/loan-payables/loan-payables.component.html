@@ -1,0 +1,197 @@
+<div class="page-container">
+  <app-dashboard-tabs />
+  <div class="page-header">
+    <h1 class="page-title">Empréstimos Obtidos</h1>
+    <button mat-flat-button color="primary" (click)="openAdd()">
+      <mat-icon>add</mat-icon> Novo Empréstimo
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  @if (summary(); as s) {
+    <div class="kpi-row">
+      <mat-card class="kpi-card kpi-red">
+        <mat-card-content>
+          <div class="kpi-label">Total Obtido</div>
+          <div class="kpi-value">{{ s.totalBorrowed | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi-card kpi-green">
+        <mat-card-content>
+          <div class="kpi-label">Total Pago</div>
+          <div class="kpi-value">{{ s.totalPaid | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi-card kpi-blue">
+        <mat-card-content>
+          <div class="kpi-label">Saldo Devedor</div>
+          <div class="kpi-value">{{ s.totalBalance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="kpi-card" [class.kpi-red]="s.overdueCount > 0">
+        <mat-card-content>
+          <div class="kpi-label">Parcelas em Atraso</div>
+          <div class="kpi-value">{{ s.overdueCount }}</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (showForm()) {
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>{{ editing() ? 'Editar' : 'Novo' }} Empréstimo Obtido</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="form" class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nome do Credor</mat-label>
+            <input matInput formControlName="creditorName" placeholder="Ex: Banco Itaú, João Silva..." />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Valor Total (R$)</mat-label>
+            <input matInput formControlName="totalAmount" appCurrencyMask type="text" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nº de Parcelas</mat-label>
+            <input matInput formControlName="installmentCount" type="number" min="1" />
+            @if (editing()) {
+              <mat-hint>Alterar parcelas não recria as existentes</mat-hint>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Data de Início</mat-label>
+            <input matInput formControlName="startDate" type="date" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Data de Vencimento Final</mat-label>
+            <input matInput formControlName="dueDate" type="date" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Observações (opcional)</mat-label>
+            <textarea matInput formControlName="notes" rows="2"></textarea>
+          </mat-form-field>
+        </form>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-button (click)="cancelForm()">Cancelar</button>
+        <button mat-flat-button color="primary" (click)="submit()" [disabled]="form.invalid || saving()">
+          @if (saving()) { <mat-spinner diameter="18" /> } @else { Salvar }
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-center"><mat-spinner diameter="48" /></div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && loans().length === 0 && !showForm()) {
+    <mat-card class="empty-state">
+      <mat-card-content>
+        <mat-icon class="empty-icon">credit_card</mat-icon>
+        <p>Nenhum empréstimo obtido registrado.</p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Loan list -->
+  @if (!loading()) {
+    <mat-accordion class="loans-accordion">
+      @for (loan of loans(); track loan.id) {
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title class="panel-title">
+              <mat-icon [class.settled]="loan.isSettled" [class.overdue]="loan.hasOverdue && !loan.isSettled">
+                {{ loan.isSettled ? 'check_circle' : loan.hasOverdue ? 'warning' : 'credit_card' }}
+              </mat-icon>
+              <span>{{ loan.creditorName }}</span>
+              @if (loan.isSettled) {
+                <mat-chip class="chip-settled">Quitado</mat-chip>
+              } @else if (loan.hasOverdue) {
+                <mat-chip class="chip-overdue">Em atraso</mat-chip>
+              }
+            </mat-panel-title>
+            <mat-panel-description class="panel-desc">
+              <span>{{ loan.balance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }} a pagar</span>
+              <span class="installment-count">{{ loan.paidCount }}/{{ loan.installmentCount }} parcelas</span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <!-- Panel content -->
+          <div class="loan-detail">
+            <div class="loan-amounts">
+              <div>
+                <span class="detail-label">Total</span>
+                <span class="detail-value">{{ loan.totalAmount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+              </div>
+              <div>
+                <span class="detail-label">Pago</span>
+                <span class="detail-value text-green">{{ loan.totalPaid | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+              </div>
+              <div>
+                <span class="detail-label">Saldo Devedor</span>
+                <span class="detail-value text-red">{{ loan.balance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+              </div>
+              <div>
+                <span class="detail-label">Vencimento</span>
+                <span class="detail-value">{{ loan.dueDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+
+            <mat-progress-bar mode="determinate" [value]="progressRate(loan)"
+              [color]="loan.isSettled ? 'accent' : 'primary'" />
+            <div class="progress-label">{{ progressRate(loan) | number:'1.0-0' }}% pago</div>
+
+            @if (loan.notes) {
+              <p class="notes-text">{{ loan.notes }}</p>
+            }
+
+            <mat-divider />
+
+            <h4 class="installments-title">Parcelas</h4>
+            <div class="installments-list">
+              @for (inst of loan.installments; track inst.id) {
+                <div class="installment-row" [class.paid]="inst.isPaid" [class.overdue]="inst.isOverdue">
+                  <span class="inst-number">#{{ inst.number }}</span>
+                  <span class="inst-amount">{{ inst.amount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+                  <span class="inst-due">{{ inst.dueDate | date:'dd/MM/yyyy' }}</span>
+                  @if (inst.isPaid) {
+                    <span class="inst-paid-date">Pago em {{ inst.paidAt | date:'dd/MM/yyyy' }}</span>
+                    <button mat-icon-button matTooltip="Estornar pagamento" (click)="unpayInstallment(inst)">
+                      <mat-icon>undo</mat-icon>
+                    </button>
+                  } @else {
+                    <span class="inst-status" [class.overdue-label]="inst.isOverdue">
+                      {{ inst.isOverdue ? 'Em atraso' : 'Pendente' }}
+                    </span>
+                    <button mat-icon-button color="primary" matTooltip="Marcar como paga" (click)="payInstallment(inst)">
+                      <mat-icon>check_circle_outline</mat-icon>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="loan-actions">
+              <button mat-button (click)="openEdit(loan)">
+                <mat-icon>edit</mat-icon> Editar
+              </button>
+              <button mat-button color="warn" (click)="delete(loan)">
+                <mat-icon>delete_outline</mat-icon> Excluir
+              </button>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  }
+</div>

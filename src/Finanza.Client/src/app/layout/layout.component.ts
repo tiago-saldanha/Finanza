@@ -51,7 +51,8 @@ export class LayoutComponent {
     { path: '/patrimony',           label: 'Patrimônio',        icon: 'account_balance' },
     { path: '/assets-liabilities',  label: 'Ativos x Passivos', icon: 'balance' },
     { path: '/investments',         label: 'Investimentos',     icon: 'show_chart' },
-    { path: '/loans',               label: 'Empréstimos',       icon: 'handshake' },
+    { path: '/loans',               label: 'Empréstimos a rec.', icon: 'handshake' },
+    { path: '/loan-payables',      label: 'Empréstimos a pag.', icon: 'credit_card' },
     { path: '/goals',               label: 'Metas',             icon: 'flag' },
     { path: '/fire',                label: 'FIRE',              icon: 'local_fire_department' },
     // ── Gestão ──────────────────────────────────────────
