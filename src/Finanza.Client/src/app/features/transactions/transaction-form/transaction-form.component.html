@@ -93,11 +93,12 @@
     <div class="link-section full-width">
       <div class="link-label">Vínculo patrimonial <span class="optional">(opcional)</span></div>
       <div class="link-chips">
-        <button type="button" [class.active]="linkType() === 'none'"       (click)="setLinkType('none')">Nenhum</button>
-        <button type="button" [class.active]="linkType() === 'asset'"      (click)="setLinkType('asset')">Ativo</button>
-        <button type="button" [class.active]="linkType() === 'liability'"  (click)="setLinkType('liability')">Passivo</button>
-        <button type="button" [class.active]="linkType() === 'loan'"       (click)="setLinkType('loan')">Empréstimo concedido</button>
-        <button type="button" [class.active]="linkType() === 'investment'" (click)="setLinkType('investment')">Investimento</button>
+        <button type="button" [class.active]="linkType() === 'none'"            (click)="setLinkType('none')">Nenhum</button>
+        <button type="button" [class.active]="linkType() === 'asset'"           (click)="setLinkType('asset')">Ativo</button>
+        <button type="button" [class.active]="linkType() === 'liability'"       (click)="setLinkType('liability')">Passivo</button>
+        <button type="button" [class.active]="linkType() === 'loan'"            (click)="setLinkType('loan')">Empréstimo concedido</button>
+        <button type="button" [class.active]="linkType() === 'loanPayable'"     (click)="setLinkType('loanPayable')">Empréstimo obtido</button>
+        <button type="button" [class.active]="linkType() === 'investment'"      (click)="setLinkType('investment')">Investimento</button>
       </div>
 
       @if (linkType() === 'asset') {
@@ -136,6 +137,19 @@
             }
           </mat-select>
           <mat-hint>Este recebimento abate o saldo do empréstimo</mat-hint>
+        </mat-form-field>
+      }
+
+      @if (linkType() === 'loanPayable') {
+        <mat-form-field appearance="outline" class="full-width link-field">
+          <mat-label>Empréstimo obtido</mat-label>
+          <mat-select formControlName="loanPayableId">
+            <mat-option [value]="null">Selecione...</mat-option>
+            @for (l of loanPayables(); track l.id) {
+              <mat-option [value]="l.id">{{ l.creditorName }} — {{ l.balance | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Este pagamento abate o saldo deste empréstimo obtido</mat-hint>
         </mat-form-field>
       }
 

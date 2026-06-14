@@ -22,6 +22,8 @@ export interface Transaction {
   liabilityName?: string;
   loanReceivableId?: string;
   loanReceivableName?: string;
+  loanPayableId?: string;
+  loanPayableName?: string;
   investmentId?: string;
   investmentName?: string;
 }
@@ -38,6 +40,7 @@ export interface CreateTransactionRequest {
   assetId?: string;
   liabilityId?: string;
   loanReceivableId?: string;
+  loanPayableId?: string;
   investmentId?: string;
 }
 
@@ -56,6 +59,7 @@ export interface UpdateTransactionRequest {
   assetId?: string;
   liabilityId?: string;
   loanReceivableId?: string;
+  loanPayableId?: string;
   investmentId?: string;
 }
 
