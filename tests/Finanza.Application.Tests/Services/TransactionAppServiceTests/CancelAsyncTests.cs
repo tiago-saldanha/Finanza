@@ -28,13 +28,16 @@ namespace Finanza.Application.Tests.Services.TransactionAppServiceTests
         }
 
         [Fact]
-        public async Task CancelAsync_WhenTransactionIsPaid_ShouldThrowTransactionCancelException()
+        public async Task CancelAsync_WhenTransactionIsPaid_ShouldThrowTransactionCancelExceptionAndNotCommit()
         {
             var transaction = Transaction.Create("Description 1", 100, Tomorrow, TransactionType.Revenue, Guid.Empty, Today);
             transaction.Pay(Tomorrow);
             _repositoryMock.Setup(r => r.GetByIdAsync(transaction.Id)).ReturnsAsync(transaction);
 
             await Assert.ThrowsAsync<TransactionCancelException>(() => _service.CancelAsync(transaction.Id));
+            
+            _repositoryMock.Verify(r => r.Update(It.IsAny<Transaction>()), Times.Never);
+            _unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Never);
             _dispatcherMock.Verify(d => d.DispatchAsync(It.IsAny<IEnumerable<IDomainEvent>>()), Times.Never);
             Assert.Equal(TransactionStatus.Paid, transaction.Status);
             Assert.Equal(Tomorrow, transaction.PaymentDate);
