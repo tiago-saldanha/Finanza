@@ -108,6 +108,9 @@ namespace Finanza.Domain.Entities
             if (Status == TransactionStatus.Cancelled)
                 throw new TransactionCancelException("Não é possível cancelar uma transação que já foi cancelada");
 
+            if (Status == TransactionStatus.Paid)
+                throw new TransactionCancelException("Não é possível cancelar uma transação que já foi paga");
+
             Status = TransactionStatus.Cancelled;
             PaymentDate = null;
 

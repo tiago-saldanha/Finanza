@@ -18,14 +18,15 @@ namespace Finanza.Domain.Tests.Entities
         }
 
         [Fact]
-        public void Cancel_WhenTransactionIsPaid_ShouldThrowTransactionCancelException()
+        public void Cancel_WhenTransactionIsPaid_ShouldThrowTransactionCancelExceptionWithCorrectMessage()
         {
             var sut = Transaction.Create("Test", 100.0M, Tomorrow, TransactionType.Expense, Guid.NewGuid(), Tomorrow);
             var paymentDate = Tomorrow;
 
             sut.Pay(paymentDate);
 
-            Assert.Throws<TransactionCancelException>(() => sut.Cancel());
+            var exception = Assert.Throws<TransactionCancelException>(() => sut.Cancel());
+            Assert.Equal("Não é possível cancelar uma transação que já foi paga", exception.Message);
             Assert.Equal(TransactionStatus.Paid, sut.Status);
             Assert.NotNull(sut.PaymentDate);
             Assert.Equal(paymentDate, sut.PaymentDate);
